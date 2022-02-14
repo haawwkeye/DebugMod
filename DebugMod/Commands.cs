@@ -14,13 +14,28 @@ namespace DebugMod
 {
     static class Commands
     {
-        public static bool HasFile(Folder folder, FileEntry file)
+        public static bool HasFolder(Folder folder, string folderName)
+        {
+            bool hasFolder;
+
+            try
+            {
+                hasFolder = folder.searchForFolder(folderName).name != null;
+            }
+            catch
+            {
+                hasFolder = false;
+            }
+
+            return hasFolder;
+        }
+        public static bool HasFile(Folder folder, string fileName)
         {
             bool hasFile;
 
             try
             {
-                hasFile = folder.searchForFile(file.name).name != null;
+                hasFile = folder.searchForFile(fileName).name != null;
             }
             catch
             {
@@ -28,6 +43,40 @@ namespace DebugMod
             }
 
             return hasFile;
+        }
+
+        public static void Init(OS os, string[] args)
+        {
+            bool hasDebugDaemon = false;
+            var computer = os.thisComputer;
+
+            var Daemons = computer.daemons;
+
+            Daemons.ForEach((Daemon val) =>
+            {
+                if (val.name == "DebugMod")
+                {
+                    hasDebugDaemon = true;
+                }
+            });
+
+            if (!hasDebugDaemon)
+            {
+                var debugDaemon = new DebugDaemon(computer, "DEBUG MENU", os);
+                Daemons.Add(debugDaemon);
+                debugDaemon.registerAsDefaultBootDaemon();
+                os.write("Loaded DebugMod Daemon");
+            }
+            else
+            {
+                os.write("Already has DebugMod Daemon");
+            }
+        }
+
+        public static void LoadDebugMenu(OS os, string[] args)
+        {
+            //TODO: Make LoadDebugMenu
+            Init(os, args); // Temp
         }
 
         public static void OpenAllPorts(OS os, string[] args)
@@ -90,9 +139,7 @@ namespace DebugMod
             for (int index = 0; index < PortExploits.services.Count && index < num; ++index)
             {
                 var file = new FileEntry(PortExploits.crackExeData[PortExploits.portNums[index]], PortExploits.cracks[PortExploits.portNums[index]]);
-                bool hasFile = HasFile(binFiles, file);
-
-                //os.write(hasFile.ToString() + " " + file.name);
+                bool hasFile = HasFile(binFiles, file.name);
 
                 if (hasFile == false)
                 {
@@ -100,33 +147,30 @@ namespace DebugMod
                 }
                 continue;
             }
-            /*
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[9], PortExploits.cracks[9]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[10], PortExploits.cracks[10]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[11], PortExploits.cracks[11]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[12], PortExploits.cracks[12]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[13], PortExploits.cracks[13]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[14], PortExploits.cracks[14]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[15], PortExploits.cracks[15]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[16], PortExploits.cracks[16]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[17], PortExploits.cracks[17]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[31], PortExploits.cracks[31]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[33], PortExploits.cracks[33]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[34], PortExploits.cracks[34]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[35], PortExploits.cracks[35]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[36], PortExploits.cracks[36]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[37], PortExploits.cracks[37]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[38], PortExploits.cracks[38]));
-            binFiles.Add(new FileEntry(PortExploits.crackExeData[39], PortExploits.cracks[39]));
-            */
-            var pacemaker = new FileEntry(PortExploits.DangerousPacemakerFirmware, "KBT_TestFirmware.dll");
-            var hasPacemaker = HasFile(binFiles, pacemaker);
 
-            //os.write(hasPacemaker.ToString() + " " + pacemaker.name);
+            // Add files that arent listed from above loop
+
+            var Aircraftdll = new FileEntry(PortExploits.ValidAircraftOperatingDLL, "747FlightSystem.dll");
+            var vaildPacemaker = new FileEntry(PortExploits.ValidPacemakerFirmware, "PacemakerWorking.dll");
+            var pacemaker = new FileEntry(PortExploits.DangerousPacemakerFirmware, "KBT_TestFirmware.dll");
+
+            var hasPacemaker = HasFile(binFiles, pacemaker.name);
+            var hasVaildPacemaker = HasFile(binFiles, vaildPacemaker.name);
+            var hasAircraft = HasFile(binFiles, Aircraftdll.name);
 
             if (hasPacemaker == false)
             {
                 binFiles.files.Add(pacemaker);
+            }
+
+            if (hasVaildPacemaker == false)
+            {
+                binFiles.files.Add(vaildPacemaker);
+            }
+
+            if (hasAircraft == false)
+            {
+                binFiles.files.Add(Aircraftdll);
             }
         }
         public static void LoseAdmin(OS os, string[] args)
@@ -144,7 +188,7 @@ namespace DebugMod
             string computer = args[1];
             string author = args[2];
             string message = args[3];
-            if (args.Length < 3)
+            if (args.Length < 4)
             {
                 os.write("Usage: addIRCMessage (ComputerID) (Author) (Message)");
                 return;
@@ -245,13 +289,13 @@ namespace DebugMod
         public static void ChangeUserDetails(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
-            string oldUser = args[1];
-            string newUser = args[2];
-            string newPass = args[3];
             if (args.Length < 3)
             {
                 os.write("Usage: changeUserDetails (NewPassword)");
             }
+            string oldUser = args[1];
+            string newUser = args[2];
+            string newPass = args[3];
             for (int index = 0; index < computer.users.Count; ++index)
             {
                 if (computer.users[index].name.ToLower().Equals(oldUser))
@@ -286,17 +330,61 @@ namespace DebugMod
         }
         public static void DeleteWhitelistDLL(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: deleteWhitelistDLL (ComputerID)");
+                return;
+            }
+
             Computer computer = Programs.getComputer(os, args[1]);
+
+            if (computer == null)
+            {
+                if (args[1].Replace(" ", "") == "")
+                {
+                    os.write("Usage: deleteWhitelistDLL (ComputerID)");
+                }
+                else
+                {
+                    os.write(args[1] + " doesn't exist");
+                }
+                
+                return;
+            }
+
             List<int> FolderPath = new List<int>();
             FolderPath.Add(5);
-            Folder folder = computer.files.root.searchForFolder("Whitelist");
-            for (int index = 0; index < folder.files.Count; ++index)
+            Folder folder = computer.files.root;
+            //.searchForFolder("Whitelist");
+
+            if (HasFolder(folder,"Whitelist"))
             {
-                if (folder.files[index].name.Equals("authenticator.dll"))
+                folder = folder.searchForFolder("Whitelist");
+                var hasAuth = HasFile(folder, "authenticator.dll");
+
+                if (hasAuth)
                 {
-                    folder.files.Remove(folder.files[index]);
-                    os.execute("connect " + computer.ip);
+                    for (int index = 0; index < folder.files.Count; ++index)
+                    {
+                        if (folder.files[index].name.Equals("authenticator.dll"))
+                        {
+                            var file = folder.files[index];
+                            os.write("Removed '" + file.name + "' from " + computer.ip);
+                            folder.files.Remove(file);
+                            os.execute("connect " + computer.ip);
+                        }
+                    }
                 }
+                else
+                {
+                    os.write("Already removed 'authenticator.dll' from " + computer.ip);
+                    return;
+                }
+            }
+            else
+            {
+                os.write(computer.ip + " doesn't have 'Whitelist' folder");
+                return;
             }
         }
         public static void ChangeMusic(OS os, string[] args)
@@ -319,7 +407,7 @@ namespace DebugMod
             string ProxyTimeInput = args[1];
             float.TryParse(ProxyTimeInput, out float ProxyTime);
             Computer computer = os.connectedComp;
-            if (args.Length < 0)
+            if (args.Length < 2)
             {
                 os.write("Usage: addProxy (Time)");
                 return;
@@ -365,116 +453,6 @@ namespace DebugMod
             }
             computer.addNewUser(os.thisComputer.ip, Username, Password, Type);
         }
-        /*public static void OpenPort(OS os, string[] args)
-        {
-            int port = Convert.ToInt32(args[1]);
-            string ip = os.thisComputer.ip;
-            Computer computer = os.connectedComp;
-            Console.WriteLine(computer.ports);
-            if (port == 22)
-            {
-                computer.openPort(22, ip);
-            }
-            else if (port == 21)
-            {
-                computer.openPort(21, ip);
-            }
-            else if (port == 25)
-            {
-                computer.openPort(25, ip);
-            }
-            else if (port == 80)
-            {
-                computer.openPort(80, ip);
-            }
-            else if (port == 1433)
-            {
-                computer.openPort(1433, ip);
-            }
-            else if (port == 3724)
-            {
-                computer.openPort(3724, ip);
-            }
-            else if (port == 104)
-            {
-                computer.openPort(104, ip);
-            }
-            else if (port == 3659)
-            {
-                computer.openPort(3659, ip);
-            }
-            else if (port == 192)
-            {
-                computer.openPort(192, ip);
-            }
-            else if (port == 6881)
-            {
-                computer.openPort(6881, ip);
-            }
-            else if (port == 443)
-            {
-                computer.openPort(443, ip);
-            }
-            else if (port == 9418)
-            {
-                computer.openPort(9418, ip);
-            }
-        }
-        public static void ClosePort(OS os, string[] args)
-        {
-            int port = Convert.ToInt32(args[1]);
-            string ip = os.thisComputer.ip;
-            Computer computer = os.connectedComp;
-            Console.WriteLine(computer.ports);
-            if (port == 22)
-            {
-                computer.closePort(22, ip);
-            }
-            else if (port == 21)
-            {
-                computer.closePort(21, ip);
-            }
-            else if (port == 25)
-            {
-                computer.closePort(25, ip);
-            }
-            else if (port == 80)
-            {
-                computer.closePort(80, ip);
-            }
-            else if (port == 1433)
-            {
-                computer.closePort(1433, ip);
-            }
-            else if (port == 3724)
-            {
-                computer.closePort(3724, ip);
-            }
-            else if (port == 104)
-            {
-                computer.closePort(104, ip);
-            }
-            else if (port == 3659)
-            {
-                computer.closePort(3659, ip);
-            }
-            else if (port == 192)
-            {
-                computer.closePort(192, ip);
-            }
-            else if (port == 6881)
-            {
-                computer.closePort(6881, ip);
-            }
-            else if (port == 443)
-            {
-                computer.closePort(443, ip);
-            }
-            else if (port == 9418)
-            {
-                computer.closePort(9418, ip);
-            }
-        } */
         public static void OpenPort(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
@@ -514,7 +492,9 @@ namespace DebugMod
             if (args.Length < 5)
             {
                 os.write("Usage: addComputer (Name) (IP) (SecurityLevel) (CompType) (ID)");
+                return;
             }
+
             try
             {
                 int IsNumber = Convert.ToInt32(args[3]);
@@ -523,6 +503,7 @@ namespace DebugMod
             catch
             {
                 os.write("Usage: addComputer (Name) (IP) (SecurityLevel) (CompType) (ID)");
+                return;
             }
             string Name = args[1];
             string IP = args[2];
@@ -689,64 +670,72 @@ namespace DebugMod
         }
         public static void SetTheme(OS os, string[] args)
         {
+            //TODO: Attempt to make SetTheme automatic since it's current all if else if statements
+            if (args.Length < 2)
+            {
+                os.write("Usage: setTheme: (Theme)\nValid Options: TerminalOnly,Blue,Teal,Yellow,Green,White,Purple,Mint,Colamaeleon,GreenCompact,Riptide,Riptide2");
+                return;
+            }
+
             OSTheme Theme;
-            string ThemeInput = args[1];
-            if (ThemeInput == "TerminalOnly")
+            string ThemeInput = args[1].ToLower();
+
+            if (ThemeInput == "terminalonly")
             {
                 Theme = OSTheme.TerminalOnlyBlack;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "Blue")
+            else if (ThemeInput == "blue")
             {
                 Theme = OSTheme.HacknetBlue;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "Teal")
+            else if (ThemeInput == "teal")
             {
                 Theme = OSTheme.HacknetTeal;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "Yellow")
+            else if (ThemeInput == "yellow")
             {
                 Theme = OSTheme.HacknetYellow;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "Green")
+            else if (ThemeInput == "green")
             {
                 Theme = OSTheme.HackerGreen;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "White")
+            else if (ThemeInput == "white")
             {
                 Theme = OSTheme.HacknetWhite;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "Purple")
+            else if (ThemeInput == "purple")
             {
                 Theme = OSTheme.HacknetPurple;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "Mint")
+            else if (ThemeInput == "mint")
             {
                 Theme = OSTheme.HacknetMint;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "Colamaeleon")
+            else if (ThemeInput == "colamaeleon")
             {
                 Theme = OSTheme.Colamaeleon;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "GreenCompact")
+            else if (ThemeInput == "greencompact")
             {
                 Theme = OSTheme.GreenCompact;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "Riptide")
+            else if (ThemeInput == "riptide" || ThemeInput == "riptide1")
             {
                 Theme = OSTheme.Riptide;
                 ThemeManager.switchTheme(os, Theme);
             }
-            else if (ThemeInput == "Riptide2")
+            else if (ThemeInput == "riptide2")
             {
                 Theme = OSTheme.Riptide2;
                 ThemeManager.switchTheme(os, Theme);
@@ -771,6 +760,7 @@ namespace DebugMod
             catch
             {
                 os.write("Usage: linkComputer: (SourceIP) (RemoteIP)");
+                return;
             }
             computer.links.Add(os.netMap.nodes.IndexOf(computer2));
         }
@@ -800,6 +790,11 @@ namespace DebugMod
         }
         public static void LoseNode(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: loseNode: (ComputerID)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             int CompToRemove = os.netMap.nodes.IndexOf(computer);
             XNA.Vector2 Pos = computer.getScreenSpacePosition();
@@ -816,12 +811,22 @@ namespace DebugMod
         }
         public static void RevealNode(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: revealNode: (ComputerID)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             int CompToReveal = os.netMap.nodes.IndexOf(computer);
             os.netMap.visibleNodes.Add(CompToReveal);
         }
         public static void RemoveComputer(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: removeComputer: (ComputerID)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             int CompToRemove = os.netMap.nodes.IndexOf(computer);
             XNA.Vector2 Pos = computer.getScreenSpacePosition();
@@ -839,6 +844,11 @@ namespace DebugMod
         }
         public static void ResetIP(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: resetIP: (ComputerID)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             computer.ip = NetworkMap.generateRandomIP();
         }
@@ -848,6 +858,11 @@ namespace DebugMod
         }
         public static void SetIP(OS os, string[] args)
         {
+            if (args.Length < 3)
+            {
+                os.write("Usage: setIP: (ComputerID) (NewIP)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             computer.ip = args[2];
         }
@@ -857,10 +872,20 @@ namespace DebugMod
         }
         public static void AddFlag(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: addFlag: (Flag)");
+                return;
+            }
             os.Flags.AddFlag(args[1]);
         }
         public static void RemoveFlag(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: removeFlag: (Flag)");
+                return;
+            }
             os.Flags.RemoveFlag(args[1]);
         }
         public static void AuthenticateToIRC(OS os, string[] args)
@@ -869,12 +894,14 @@ namespace DebugMod
         }
         public static void AddAgentToIRC(OS os, string[] args)
         {
-            Computer computerobject = Programs.getComputer(os, args[1]);
-            if (args.Length < 6)
+            if (args.Length < 7)
             {
                 os.write("Usage: addAgentToIRC (NameORIDORIP) (AgentName) (AgentPassword) (AgentColourRed) (AgentColourBlue) (AgentColourGreen)");
                 return;
             }
+
+            Computer computerobject = Programs.getComputer(os, args[1]);
+
             try
             {
                 string IsComp = computerobject.adminIP;
@@ -889,6 +916,7 @@ namespace DebugMod
             catch
             {
                 os.write("Usage: addAgentToIRC (NameORIDORIP) (AgentName) (AgentPassword) (AgentColourRed) (AgentColourBlue) (AgentColourGreen)");
+                return;
             }
             string computer = computerobject.idName;
             DLCHubServer IRC = Programs.getComputer(os, computer).getDaemon(typeof(DLCHubServer)) as DLCHubServer;
@@ -897,16 +925,33 @@ namespace DebugMod
         }
         public static void SetCompPorts(OS os, string[] args)
         {
+            if (args.Length < 3)
+            {
+                os.write("Usage: setCompPorts: (ComputerID) (Ports)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             ComputerLoader.loadPortsIntoComputer(args[2], computer);
         }
         public static void AddCustomPortToComp(OS os, string[] args)
         {
+            if (args.Length < 3)
+            {
+                os.write("Usage: addCustomPortToComp: (ComputerID) (Port)");
+                return;
+            }
             //TODO: Make AddCustomPortToComp
+            Computer computer = Programs.getComputer(os, args[1]);
         }
         public static void RemoveCustomPortFromComp(OS os, string[] args)
         {
+            if (args.Length < 3)
+            {
+                os.write("Usage: removeCustomPortFromComp: (ComputerID) (Port)");
+                return;
+            }
             //TODO: Make RemoveCustomPortFromComp
+            Computer computer = Programs.getComputer(os, args[1]);
             /*
             Computer computer = Programs.getComputer(os, args[1]);
             Pathfinder.Game.Computer.Extensions.GetModdedPortList(computer);
@@ -914,30 +959,55 @@ namespace DebugMod
         }
         public static void AddSongChangerDaemon(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: addSongChangerDaemon: (ComputerID)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             SongChangerDaemon daemon = new SongChangerDaemon(computer, os);
             computer.daemons.Add(daemon);
         }
         public static void AddRicerConnectDaemon(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: addRicerConnectDaemon: (ComputerID)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             CustomConnectDisplayDaemon daemon = new CustomConnectDisplayDaemon(computer, os);
             computer.daemons.Add(daemon);
         }
         public static void AddDLCCreditsDaemon(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: addDLCCreditsDaemon: (ComputerID)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             DLCCreditsDaemon daemon = new DLCCreditsDaemon(computer, os);
             computer.daemons.Add(daemon);
         }
         public static void AddIRCDaemon(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: addIRCDaemon: (ComputerID)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             IRCDaemon daemon = new IRCDaemon(computer, os, args[2]);
             computer.daemons.Add(daemon);
         }
         public static void AddISPDaemon(OS os, string[] args)
         {
+            if (args.Length < 2)
+            {
+                os.write("Usage: addISPDaemon: (ComputerID)");
+                return;
+            }
             Computer computer = Programs.getComputer(os, args[1]);
             ISPDaemon daemon = new ISPDaemon(computer, os);
             computer.daemons.Add(daemon);
@@ -1019,14 +1089,73 @@ namespace DebugMod
         public static void SummonDebugModDaemonComp(OS os, string[] args)
         {
             //TODO: Make SummonDebugModDaemonComp
-            /*
-            Computer computer = new Computer("DebugMod Comp", NetworkMap.generateRandomIP(), os.netMap.getRandomPosition(), 50000, 2, os);
-            computer.idName = "debugMod";
-            os.netMap.nodes.Add(computer);
-            Dictionary<string, string> dict = new Dictionary<string, string>();
-            Pathfinder.Game.Computer.Extensions.AddModdedDaemon(computer, "DebugModDaemon");
-            os.execute("connect " + computer.ip);
-            */
+            string debugCompIP = "";
+            bool hasDebugComp = false;
+
+            os.netMap.nodes.ForEach((Computer comp) =>
+            {
+                if (comp.idName == "debugMod" && !hasDebugComp)
+                {
+                    debugCompIP = comp.ip;
+                    hasDebugComp = true;
+                }
+                else if (comp.idName == "debugMod" && hasDebugComp)
+                {
+                    os.warningFlash();
+
+                    os.write(comp.ip + " is also a DebugMod Comp\nBut there should only be one?");
+                    os.write("Attempting to delete " + comp.ip);
+
+                    os.netMap.nodes.Remove(comp); // Should delete?
+
+                    os.write("Should be deleted?");
+
+                    // Just in case
+                    comp.os.failBoot();
+                    comp.os.execute("forkbomb");
+                }
+            });
+
+            if (!hasDebugComp)
+            {
+                Computer computer = new Computer("DebugMod Comp", NetworkMap.generateRandomIP(), os.netMap.getRandomPosition(), 50000, 2, os);
+                computer.idName = "debugMod";
+                os.netMap.nodes.Add(computer);
+
+                //LOAD START
+                bool hasDebugDaemon = false;
+
+                var Daemons = computer.daemons;
+
+                Daemons.ForEach((Daemon val) =>
+                {
+                    if (val.name == "DebugMod")
+                    {
+                        hasDebugDaemon = true;
+                    }
+                });
+
+                if (!hasDebugDaemon)
+                {
+                    var debugDaemon = new DebugDaemon(computer, "DEBUG MENU", computer.os);
+                    Daemons.Add(debugDaemon);
+                    debugDaemon.registerAsDefaultBootDaemon();
+                    os.write("Loaded DebugMod Daemon");
+                }
+                else
+                {
+                    os.write("Already has DebugMod Daemon");
+                }
+                //LOAD END
+
+                os.write("Going to DebugMod Comp");
+                os.execute("connect " + computer.ip);
+            }
+            else
+            {
+                os.write("Going to DebugMod Comp");
+                os.execute("connect " + debugCompIP);
+            }
         }
         public static void ChangeAdmin(OS os, string[] args)
         {

@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="AccessBypass.cs" />
     <Compile Include="AlwaysActiveAdmin.cs" />
+    <Compile Include="ComputerHooks.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="DebugApp.cs" />
     <Compile Include="DebugDaemon.cs" />

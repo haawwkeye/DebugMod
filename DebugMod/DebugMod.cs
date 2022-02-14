@@ -115,12 +115,14 @@ namespace DebugMod
             try
             {
                 bool DebugEnabled = true;
+                //TODO: Rewrite DebugDaemon
+                Pathfinder.Daemon.DaemonManager.RegisterDaemon<DebugDaemon>();
+                INTERNALSETUP.RegisterCommand("loadDebugMenu", Commands.LoadDebugMenu, false); // Works
                 INTERNALSETUP.RegisterCommand("openAllPorts", Commands.OpenAllPorts, true); // Works
                 INTERNALSETUP.RegisterCommand("bypassProxy", Commands.BypassProxy, true); // Works
                 INTERNALSETUP.RegisterCommand("solveFirewall", Commands.SolveFirewall, true); // Works
                 INTERNALSETUP.RegisterCommand("getAdmin", Commands.GetAdmin, true); // Works
                 INTERNALSETUP.RegisterCommand("loseAdmin", Commands.LoseAdmin, true); // Works
-
 
                 if (DebugEnabled)
                 {
@@ -222,9 +224,6 @@ namespace DebugMod
                     INTERNALSETUP.RegisterCommand("kaguyaTrialEffect2", Commands.KaguyaTrialEffect2, false);
                     INTERNALSETUP.RegisterCommand("kaguyaTrialEffect3", Commands.KaguyaTrialEffect3, false);
                     INTERNALSETUP.RegisterCommand("summonDebugModDaemonComp", Commands.SummonDebugModDaemonComp, false);
-                    //TODO: Rewrite DebugDaemon
-                    //Pathfinder.Daemon.IInterface daemon = new DebugDaemon();
-                    //Pathfinder.Daemon.Handler.RegisterDaemon("DebugModDaemon", daemon);
                     /*if (version != newVersion)
                     {
                         EventManager.RegisterListener<OSLoadSaveFileEvent>(NewUpdateAlert);
