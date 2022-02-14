@@ -419,8 +419,10 @@ namespace DebugMod
             string Solution = args[1];
             string LevelInput = args[2];
             string AdditionalTimeInput = args[3];
+
             int Level = Convert.ToInt32(LevelInput);
             float.TryParse(AdditionalTimeInput, out float AdditionalTime);
+
             Computer computer = os.connectedComp;
             if (args.Length == 1 && args[1] != null)
             {
@@ -430,7 +432,7 @@ namespace DebugMod
             {
                 computer.addFirewall(Level, Solution);
             }
-            else if (args.Length == 3 && args[1] != null && args[2] != null && args[3] != null)
+            else if (args.Length >= 3 && args[1] != null && args[2] != null && args[3] != null)
             {
                 computer.addFirewall(Level, Solution, AdditionalTime);
             }
@@ -444,13 +446,16 @@ namespace DebugMod
             string Username = args[1];
             string Password = args[2];
             string TypeInput = args[3];
+
             byte Type = Convert.ToByte(TypeInput);
             Computer computer = os.connectedComp;
+
             if (args.Length < 3)
             {
                 os.write("Usage: addUser (Username) (Password) (Type)");
                 return;
             }
+
             computer.addNewUser(os.thisComputer.ip, Username, Password, Type);
         }
         public static void OpenPort(OS os, string[] args)

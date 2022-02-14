@@ -166,7 +166,9 @@ namespace DebugMod
                     INTERNALSETUP.RegisterCommand("showRAM", Commands.ShowRAM, true); // Works
                     INTERNALSETUP.RegisterCommand("getUniversalAdmin", Commands.GetUniversalAdmin, true); // Works
                     INTERNALSETUP.RegisterCommand("changeUserDetails", Commands.ChangeUserDetails, true); // Partial
-                    //INTERNALSETUP.RegisterCommand("executeHack", Commands.ExecuteHack, true);
+                    //
+                    INTERNALSETUP.RegisterCommand("executeHack", Commands.ExecuteHack, true);
+                    //
                     INTERNALSETUP.RegisterCommand("generateExampleAcademicRecord", Commands.GenerateExampleAcadmicRecord, true); // Works
                     INTERNALSETUP.RegisterCommand("generateExampleMedicalRecord", Commands.GenerateExampleMedicalRecord, true); // Fixed
                     INTERNALSETUP.RegisterCommand("changeMusic", Commands.ChangeMusic, true); // Fixed
@@ -211,7 +213,9 @@ namespace DebugMod
                     INTERNALSETUP.RegisterCommand("addSongChangerDaemon", Commands.AddSongChangerDaemon, true); // Works
                     INTERNALSETUP.RegisterCommand("addRicerConnectDaemon", Commands.AddRicerConnectDaemon, true); // Works
                     INTERNALSETUP.RegisterCommand("addDLCCreditsDaemon", Commands.AddDLCCreditsDaemon, true); // Works
-                    //INTERNALSETUP.RegisterCommand("addIRCDaemon", Commands.AddIRCDaemon,  true);
+                    //
+                    INTERNALSETUP.RegisterCommand("addIRCDaemon", Commands.AddIRCDaemon,  true);
+                    //
                     INTERNALSETUP.RegisterCommand("addISPDaemon", Commands.AddISPDaemon, true); // Works
                     INTERNALSETUP.RegisterCommand("quit", Commands.Quit, true); // Works
                     INTERNALSETUP.RegisterCommand("deleteLogs", Commands.DeleteLogs, true); // Works
@@ -221,7 +225,9 @@ namespace DebugMod
                     INTERNALSETUP.RegisterCommand("removeSongChangerDaemon", Commands.RemoveSongChangerDaemon, true);
                     INTERNALSETUP.RegisterCommand("removeRicerConnectDaemon", Commands.RemoveRicerConnectDaemon, true);
                     INTERNALSETUP.RegisterCommand("removeDLCCreditsDaemon", Commands.RemoveDLCCreditsDaemon, true);
-                    //INTERNALSETUP.RegisterCommand("removeIRCDaemon", Commands.RemoveIRCDaemon,  true);
+                    //
+                    INTERNALSETUP.RegisterCommand("removeIRCDaemon", Commands.RemoveIRCDaemon,  true);
+                    //
                     INTERNALSETUP.RegisterCommand("removeISPDaemon", Commands.RemoveISPDaemon, true);
                     INTERNALSETUP.RegisterCommand("forkbombVirus", Commands.ForkbombVirus, true);
                     INTERNALSETUP.RegisterCommand("installInviolabilty", Commands.InstallInviolabilty, true);
