@@ -15,7 +15,7 @@ namespace DebugMod
     static class Commands
     {
 
-        public static bool OpenAllPorts(OS os, List<string> args)
+        public static void OpenAllPorts(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             foreach (var port in computer.ports)
@@ -23,9 +23,8 @@ namespace DebugMod
                 if (!computer.isPortOpen(port))
                     computer.openPort(port, os.thisComputer.ip);
             }
-            return false;
         }
-        public static bool CloseAllPorts(OS os, List<string> args)
+        public static void CloseAllPorts(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             foreach (var port in computer.ports)
@@ -33,128 +32,131 @@ namespace DebugMod
                 if (computer.isPortOpen(port))
                     computer.closePort(port, os.thisComputer.ip);
             }
-            return false;
         }
-        public static bool BypassProxy(OS os, List<string> args)
+        public static void BypassProxy(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             computer.proxyActive = false;
-            return false;
         }
 
-        public static bool SolveFirewall(OS os, List<string> args)
+        public static void SolveFirewall(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             computer.firewall.solved = true;
-            return false;
         }
 
-        public static bool GetAdmin(OS os, List<string> args)
+        public static void GetAdmin(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             computer.adminIP = os.thisComputer.ip;
-            return false;
         }
 
-        public static bool DeathSeq(OS os, List<string> args)
+        public static void DeathSeq(OS os, string[] args)
         {
             os.TraceDangerSequence.BeginTraceDangerSequence();
-            return false;
         }
-        public static bool CancelDeathSeq(OS os, List<string> args)
+        public static void CancelDeathSeq(OS os, string[] args)
         {
             os.TraceDangerSequence.CancelTraceDangerSequence();
-            return false;
         }
 
-        public static bool SetHomeNodeServer(OS os, List<string> args)
+        public static void SetHomeNodeServer(OS os, string[] args)
         {
             os.homeNodeID = os.connectedComp.idName;
-            return false;
         }
-        public static bool SetHomeAssetServer(OS os, List<string> args)
+        public static void SetHomeAssetServer(OS os, string[] args)
         {
             os.homeAssetServerID = os.connectedComp.idName;
-            return false;
         }
-        public static bool Debug(OS os, List<string> args)
+        public static void Debug(OS os, string[] args)
         {
             int num = PortExploits.services.Count;
+            var binFiles = os.thisComputer.files.root.folders[2].files;
             for (int index = 0; index < PortExploits.services.Count && index < num; ++index)
-                os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[PortExploits.portNums[index]], PortExploits.cracks[PortExploits.portNums[index]]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[9], PortExploits.cracks[9]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[10], PortExploits.cracks[10]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[11], PortExploits.cracks[11]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[12], PortExploits.cracks[12]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[13], PortExploits.cracks[13]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[14], PortExploits.cracks[14]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[15], PortExploits.cracks[15]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[16], PortExploits.cracks[16]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[17], PortExploits.cracks[17]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[31], PortExploits.cracks[31]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[33], PortExploits.cracks[33]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[34], PortExploits.cracks[34]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[35], PortExploits.cracks[35]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[36], PortExploits.cracks[36]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[37], PortExploits.cracks[37]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[38], PortExploits.cracks[38]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.crackExeData[39], PortExploits.cracks[39]));
-            os.thisComputer.files.root.folders[2].files.Add(new FileEntry(PortExploits.DangerousPacemakerFirmware, "KBT_TestFirmware.dll"));
-            return false;
+            {
+                var file = new FileEntry(PortExploits.crackExeData[PortExploits.portNums[index]], PortExploits.cracks[PortExploits.portNums[index]]);
+                bool hasFile = binFiles.Contains(file);
+
+                os.write(hasFile.ToString() + " " + file.name);
+
+                if (hasFile == false)
+                {
+                    binFiles.Add(file);
+                }
+                continue;
+            }
+            /*
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[9], PortExploits.cracks[9]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[10], PortExploits.cracks[10]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[11], PortExploits.cracks[11]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[12], PortExploits.cracks[12]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[13], PortExploits.cracks[13]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[14], PortExploits.cracks[14]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[15], PortExploits.cracks[15]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[16], PortExploits.cracks[16]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[17], PortExploits.cracks[17]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[31], PortExploits.cracks[31]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[33], PortExploits.cracks[33]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[34], PortExploits.cracks[34]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[35], PortExploits.cracks[35]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[36], PortExploits.cracks[36]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[37], PortExploits.cracks[37]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[38], PortExploits.cracks[38]));
+            binFiles.Add(new FileEntry(PortExploits.crackExeData[39], PortExploits.cracks[39]));
+            */
+            var pacemaker = new FileEntry(PortExploits.DangerousPacemakerFirmware, "KBT_TestFirmware.dll");
+            var hasPacemaker = binFiles.Contains(pacemaker);
+
+            os.write(hasPacemaker.ToString() + " " + pacemaker.name);
+
+            if (hasPacemaker == false)
+            {
+                binFiles.Add(pacemaker);
+            }
         }
-        public static bool LoseAdmin(OS os, List<string> args)
+        public static void LoseAdmin(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             computer.adminIP = os.connectedComp.ip;
-            return false;
         }
-        public static bool RevealAll(OS os, List<string> args)
+        public static void RevealAll(OS os, string[] args)
         {
             for (int index = 0; index < os.netMap.nodes.Count; ++index)
                 os.netMap.visibleNodes.Add(index);
-
-
-            return false;
         }
-        public static bool AddIRCMessage(OS os, List<string> args)
+        public static void AddIRCMessage(OS os, string[] args)
         {
             string computer = args[1];
             string author = args[2];
             string message = args[3];
-            if (args.Count < 3)
+            if (args.Length < 3)
             {
                 os.write("Usage: addIRCMessage (ComputerID) (Author) (Message)");
-                return false;
+                return;
             }
 
             DLCHubServer IRC = Programs.getComputer(os, computer).getDaemon(typeof(DLCHubServer)) as DLCHubServer;
             IRC.IRCSystem.AddLog(author, message, null);
-            return false;
         }
-        public static bool StrikerAttack(OS os, List<string> args)
+        public static void StrikerAttack(OS os, string[] args)
         {
             HackerScriptExecuter.runScript("DLC/ActionScripts/Hackers/SystemHack.txt", (object)os, (string)null);
-            return false;
         }
-        public static bool ThemeAttack(OS os, List<string> args)
+        public static void ThemeAttack(OS os, string[] args)
         {
             HackerScriptExecuter.runScript("HackerScripts/ThemeHack.txt", (object)os, (string)null);
-            return false;
         }
-        public static bool CallThePoliceSoTheyCanTraceYou(OS os, List<string> args)
+        public static void CallThePoliceSoTheyCanTraceYou(OS os, string[] args)
         {
             os.traceTracker.start(100f);
-            return false;
         }
-        public static bool ReportYourselfToFBI(OS os, List<string> args)
+        public static void ReportYourselfToFBI(OS os, string[] args)
         {
             os.traceTracker.start(20f);
-            return false;
         }
-        public static bool TraceYourselfIn(OS os, List<string> args)
+        public static void TraceYourselfIn(OS os, string[] args)
         {
             string TraceTimeInput = args[1];
-            float TraceTime;
             try
             {
                 int IsNumber = Convert.ToInt32(args[1]);
@@ -162,65 +164,54 @@ namespace DebugMod
             catch
             {
                 os.write("Usage: TraceYourselfIn: (TimeInSeconds)");
-                return false;
+                return;
             }
-            float.TryParse(TraceTimeInput, out TraceTime);
+            float.TryParse(TraceTimeInput, out float TraceTime);
             os.traceTracker.start(TraceTime);
-            return false;
         }
-        public static bool WarningFlash(OS os, List<string> args)
+        public static void WarningFlash(OS os, string[] args)
         {
             SoundEffect sound = os.content.Load<SoundEffect>("SFX/beep");
             os.warningFlash();
             sound.Play();
-            return false;
         }
-        public static bool StopTrace(OS os, List<string> args)
+        public static void StopTrace(OS os, string[] args)
         {
             os.traceTracker.stop();
-            return false;
         }
-        public static bool HideDisplay(OS os, List<string> args)
+        public static void HideDisplay(OS os, string[] args)
         {
             os.display.visible = false;
-            return false;
         }
-        public static bool HideNetMap(OS os, List<string> args)
+        public static void HideNetMap(OS os, string[] args)
         {
             os.netMap.visible = false;
-            return false;
         }
-        public static bool HideTerminal(OS os, List<string> args)
+        public static void HideTerminal(OS os, string[] args)
         {
             os.terminal.visible = false;
-            return false;
         }
-        public static bool HideRAM(OS os, List<string> args)
+        public static void HideRAM(OS os, string[] args)
         {
             os.ram.visible = false;
-            return false;
         }
-        public static bool ShowDisplay(OS os, List<string> args)
+        public static void ShowDisplay(OS os, string[] args)
         {
             os.display.visible = true;
-            return false;
         }
-        public static bool ShowNetMap(OS os, List<string> args)
+        public static void ShowNetMap(OS os, string[] args)
         {
             os.netMap.visible = true;
-            return false;
         }
-        public static bool ShowTerminal(OS os, List<string> args)
+        public static void ShowTerminal(OS os, string[] args)
         {
             os.terminal.visible = true;
-            return false;
         }
-        public static bool ShowRAM(OS os, List<string> args)
+        public static void ShowRAM(OS os, string[] args)
         {
             os.ram.visible = true;
-            return false;
         }
-        public static bool GetUniversalAdmin(OS os, List<string> args)
+        public static void GetUniversalAdmin(OS os, string[] args)
         {
             List<Computer> computerListExtensionExtensionExtension = os.netMap.nodes;
             List<int> visbleCompsExtensionExtensionExtension = os.netMap.visibleNodes;
@@ -229,25 +220,22 @@ namespace DebugMod
             {
                 computerListExtensionExtensionExtension[index].adminIP = os.thisComputer.ip;
             }
-            return false;
         }
-        public static bool HackComputer(OS os, List<string> args)
+        public static void HackComputer(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             int RAMAvailable = os.ramAvaliable;
-
-            return false;
+            //TODO: Make HackComputer Command
         }
-        public static bool ChangeUserDetails(OS os, List<string> args)
+        public static void ChangeUserDetails(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             string oldUser = args[1];
             string newUser = args[2];
             string newPass = args[3];
-            if (args.Count < 3)
+            if (args.Length < 3)
             {
                 os.write("Usage: changeUserDetails (NewPassword)");
-                return false;
             }
             for (int index = 0; index < computer.users.Count; ++index)
             {
@@ -256,36 +244,32 @@ namespace DebugMod
                 UserDetail user = computer.users[index];
                 user.known = true;
             }
-            return false;
         }
-        public static bool GenerateExampleAcadmicRecord(OS os, List<string> args)
+        public static void GenerateExampleAcadmicRecord(OS os, string[] args)
         {
             Computer computer = os.thisComputer;
             Folder folder = os.thisComputer.files.root.searchForFolder("home");
             string File = "FULL NAME HERE\n\n--------------------\nDEGREE HERE\nUNIVERSITY HERE\nGPA HERE";
-            folder.files.Add(new FileEntry(File, "FULL NAME HERE"));
-            return false;
+            folder.files.Add(new FileEntry(File, "FULL NAME HERE")); 
         }
-        public static bool GenerateExampleMedicalRecord(OS os, List<string> args)
+        public static void GenerateExampleMedicalRecord(OS os, string[] args)
         {
             Computer computer = os.thisComputer;
             Folder folder = os.thisComputer.files.root.searchForFolder("home");
             string File = "FIRST NAME HERE\n--------------------\nLAST NAME HERE\n--------------------\nmale OR female\n--------------------\nDATE OF BIRTH HERE TIME OF BIRTH HERE\n--------------------\nMedical Record\nDate of Birth :: DATE OF BIRTH HERE TIME OF BIRTH HERE\nBlood Type :: BLOOD TYPE HERE\nHeight :: HEIGHT HERE IN CM\n Allergies :: ALLERGIES HERE\nActive Prescriptions :: ACTIVE PRESCRIPTSION HERE\nRecorded Visits :: RECORDED VISTS HERE\nNotes :: NOTES HERE";
             folder.files.Add(new FileEntry(File, "LASTNAMEHERE FIRSTNAMEHERE"));
-            return false;
         }
-        public static bool ExecuteHack(OS os, List<string> args)
+        public static void ExecuteHack(OS os, string[] args)
         {
             string HackerScript = args[1];
-            if (args.Count < 0)
+            if (args.Length < 0)
             {
                 os.write("Usage: executeHack (HackerScriptLocation)\nHacker script must be in Content/HackerScripts");
-                return false;
+                return;
             }
             HackerScriptExecuter.runScript("HackerScripts/" + HackerScript, (string)null);
-            return false;
         }
-        public static bool DeleteWhitelistDLL(OS os, List<string> args)
+        public static void DeleteWhitelistDLL(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             List<int> FolderPath = new List<int>();
@@ -299,9 +283,8 @@ namespace DebugMod
                     os.execute("connect " + computer.ip);
                 }
             }
-            return false;
         }
-        public static bool ChangeMusic(OS os, List<string> args)
+        public static void ChangeMusic(OS os, string[] args)
         {
             string SongInput = args[1];
             string Song = args[1].Replace("/", "\\");
@@ -310,46 +293,41 @@ namespace DebugMod
                 Song = args[1].Replace("\\", "\\");
             }
             MusicManager.playSongImmediatley(Song);
-            return false;
         }
-        public static bool CrashComputer(OS os, List<string> args)
+        public static void CrashComputer(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             computer.crash(os.thisComputer.ip);
-            return false;
         }
-        public static bool AddProxy(OS os, List<string> args)
+        public static void AddProxy(OS os, string[] args)
         {
             string ProxyTimeInput = args[1];
-            float ProxyTime;
-            float.TryParse(ProxyTimeInput, out ProxyTime);
+            float.TryParse(ProxyTimeInput, out float ProxyTime);
             Computer computer = os.connectedComp;
-            if (args.Count < 0)
+            if (args.Length < 0)
             {
                 os.write("Usage: addProxy (Time)");
-                return false;
+                return;
             }
             computer.addProxy(ProxyTime);
-            return false;
         }
-        public static bool AddFirewall(OS os, List<string> args)
+        public static void AddFirewall(OS os, string[] args)
         {
             string Solution = args[1];
             string LevelInput = args[2];
             string AdditionalTimeInput = args[3];
             int Level = Convert.ToInt32(LevelInput);
-            float AdditionalTime;
-            float.TryParse(AdditionalTimeInput, out AdditionalTime);
+            float.TryParse(AdditionalTimeInput, out float AdditionalTime);
             Computer computer = os.connectedComp;
-            if (args.Count == 1 && args[1] != null)
+            if (args.Length == 1 && args[1] != null)
             {
                 computer.addFirewall(Level);
             }
-            else if (args.Count == 2 && args[1] != null && args[2] != null)
+            else if (args.Length == 2 && args[1] != null && args[2] != null)
             {
                 computer.addFirewall(Level, Solution);
             }
-            else if (args.Count == 3 && args[1] != null && args[2] != null && args[3] != null)
+            else if (args.Length == 3 && args[1] != null && args[2] != null && args[3] != null)
             {
                 computer.addFirewall(Level, Solution, AdditionalTime);
             }
@@ -357,24 +335,22 @@ namespace DebugMod
             {
                 os.write("Usage: addFirewall (Level) [Solution] [AdditionalTime]");
             }
-            return false;
         }
-        public static bool AddUser(OS os, List<string> args)
+        public static void AddUser(OS os, string[] args)
         {
             string Username = args[1];
             string Password = args[2];
             string TypeInput = args[3];
             byte Type = Convert.ToByte(TypeInput);
             Computer computer = os.connectedComp;
-            if (args.Count < 3)
+            if (args.Length < 3)
             {
                 os.write("Usage: addUser (Username) (Password) (Type)");
-                return false;
+                return;
             }
             computer.addNewUser(os.thisComputer.ip, Username, Password, Type);
-            return false;
         }
-        /*public static bool OpenPort(OS os, List<string> args)
+        /*public static void OpenPort(OS os, string[] args)
         {
             int port = Convert.ToInt32(args[1]);
             string ip = os.thisComputer.ip;
@@ -428,9 +404,8 @@ namespace DebugMod
             {
                 computer.openPort(9418, ip);
             }
-            return false;
         }
-        public static bool ClosePort(OS os, List<string> args)
+        public static void ClosePort(OS os, string[] args)
         {
             int port = Convert.ToInt32(args[1]);
             string ip = os.thisComputer.ip;
@@ -484,52 +459,46 @@ namespace DebugMod
             {
                 computer.closePort(9418, ip);
             }
-            return false;
         } */
-        public static bool OpenPort(OS os, List<string> args)
+        public static void OpenPort(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
-            if (args.Count < 1)
+            if (args.Length < 1)
             {
                 os.write("Usage: openPort (PortToopen)");
-                return false;
+                return;
             }
             int port = Convert.ToInt32(args[1]);
             string ip = os.thisComputer.ip;
             computer.openPort(port, ip);
-            return false;
         }
-        public static bool ClosePort(OS os, List<string> args)
+        public static void ClosePort(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
-            if (args.Count < 1)
+            if (args.Length < 1)
             {
                 os.write("Usage: closePort (PortToClose)\n");
-                return false;
+                
             }
             int port = Convert.ToInt32(args[1]);
             string ip = os.thisComputer.ip;
             computer.closePort(port, ip);
-            return false;
         }
-        public static bool RemoveProxy(OS os, List<string> args)
+        public static void RemoveProxy(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             computer.hasProxy = false;
-            return false;
         }
-        public static bool RemoveFirewall(OS os, List<string> args)
+        public static void RemoveFirewall(OS os, string[] args)
         {
             Computer computer = os.connectedComp;
             computer.firewall = null;
-            return false;
         }
-        public static bool AddComputer(OS os, List<string> args)
+        public static void AddComputer(OS os, string[] args)
         {
-            if (args.Count < 5)
+            if (args.Length < 5)
             {
                 os.write("Usage: addComputer (Name) (IP) (SecurityLevel) (CompType) (ID)");
-                return false;
             }
             try
             {
@@ -539,7 +508,6 @@ namespace DebugMod
             catch
             {
                 os.write("Usage: addComputer (Name) (IP) (SecurityLevel) (CompType) (ID)");
-                return false;
             }
             string Name = args[1];
             string IP = args[2];
@@ -549,9 +517,8 @@ namespace DebugMod
             Computer computer = new Computer(Name, IP, os.netMap.getRandomPosition(), SecurityLevel, CompType, os);
             computer.idName = ID;
             os.netMap.nodes.Add(computer); // If you are adding a new computer, you must add the object to nodes list
-            return false;
         }
-        public static bool DefineComputer(OS os, List<string> args)
+        public static void DefineComputer(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             string Action = args[2];
@@ -559,30 +526,29 @@ namespace DebugMod
 
             if (Action == "tracetime")
             {
-                float TraceTime;
-                float.TryParse(ActionArgs, out TraceTime);
+                float.TryParse(ActionArgs, out float TraceTime);
                 computer.traceTime = TraceTime;
             }
             else if (Action == "isadminsuper")
             {
-                bool TrueOrFalse;
-                bool.TryParse(ActionArgs, out TrueOrFalse);
-                computer.admin.IsSuper = TrueOrFalse ? true : false;
+                bool success = bool.TryParse(ActionArgs, out bool TrueOrFalse);
+                if (!success)
+                {
+                    TrueOrFalse = computer.admin.IsSuper;
+                }
+                computer.admin.IsSuper = TrueOrFalse;
             }
-            return false;
         }
-        public static bool PlaySFX(OS os, List<string> args)
+        public static void PlaySFX(OS os, string[] args)
         {
             SoundEffect sound = os.content.Load<SoundEffect>(args[1]);
             sound.Play();
-            return false;
         }
-        public static bool GetMoreRAM(OS os, List<string> args)
+        public static void GetMoreRAM(OS os, string[] args)
         {
             os.totalRam = 2048;
-            return false;
         }
-        public static bool SetFaction(OS os, List<string> args)
+        public static void SetFaction(OS os, string[] args)
         {
             string factionInput = args[1];
             if (factionInput == "entropy")
@@ -601,14 +567,12 @@ namespace DebugMod
             {
                 os.write("Usage: setFaction entropy/csec");
             }
-            return false;
         }
-        public static bool TracedBehind250Proxies(OS os, List<string> args)
+        public static void TracedBehind250Proxies(OS os, string[] args)
         {
             os.traceTracker.start(500f);
-            return false;
         }
-        public static bool OxygencraftStorageFaciltyCache(OS os, List<string> args) // Don't tell anyone about this command, keep it a secret
+        public static void OxygencraftStorageFaciltyCache(OS os, string[] args) // Don't tell anyone about this command, keep it a secret
         {
             Computer computer = new Computer("oxygencraft Storage Facility", "4825.18.385.2956", os.netMap.getRandomPosition(), 2000, 2, os);
             computer.idName = "oxyStorageCache";
@@ -676,30 +640,25 @@ namespace DebugMod
             bin.files.Add(new FileEntry(PortExploits.ValidPacemakerFirmware, Utils.GetNonRepeatingFilename("PacemakerWorking", ".dll", bin)));
             bin.files.Add(new FileEntry(PortExploits.ValidAircraftOperatingDLL, Utils.GetNonRepeatingFilename("747FlightSystem", ".dll", bin)));
             os.netMap.nodes.Add(computer);
-            return false;
         }
-        public static bool DisableEmailIcon(OS os, List<string> args)
+        public static void DisableEmailIcon(OS os, string[] args)
         {
             os.DisableEmailIcon = true;
-            return false;
         }
-        public static bool EnableEmailIcon(OS os, List<string> args)
+        public static void EnableEmailIcon(OS os, string[] args)
         {
             os.DisableEmailIcon = false;
-            return false;
         }
-        public static bool NodeRestore(OS os, List<string> args)
+        public static void NodeRestore(OS os, string[] args)
         {
             DLC1SessionUpgrader.ReDsicoverAllVisibleNodesInOSCache(os);
-            return false;
         }
-        public static bool AddRestoreCircle(OS os, List<string> args)
+        public static void AddRestoreCircle(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             SFX.addCircle(computer.getScreenSpacePosition(), Utils.AddativeWhite * 0.4f, 70f);
-            return false;
         }
-        public static bool WhitelistBypass(OS os, List<string> args)
+        public static void WhitelistBypass(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             Folder folder = computer.files.root.searchForFolder("Whitelist");
@@ -712,9 +671,8 @@ namespace DebugMod
                     os.execute("connect " + computer.ip);
                 }
             }
-            return false;
         }
-        public static bool SetTheme(OS os, List<string> args)
+        public static void SetTheme(OS os, string[] args)
         {
             OSTheme Theme;
             string ThemeInput = args[1];
@@ -782,14 +740,12 @@ namespace DebugMod
             {
                 os.write("Usage: setTheme: (Theme)\nValid Options: TerminalOnly,Blue,Teal,Yellow,Green,White,Purple,Mint,Colamaeleon,GreenCompact,Riptide,Riptide2");
             }
-            return false;
         }
-        public static bool SetCustomTheme(OS os, List<string> args)
+        public static void SetCustomTheme(OS os, string[] args)
         {
             ThemeManager.switchTheme(os, args[1]);
-            return false;
         }
-        public static bool LinkComputer(OS os, List<string> args)
+        public static void LinkComputer(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             Computer computer2 = Programs.getComputer(os, args[2]);
@@ -802,16 +758,14 @@ namespace DebugMod
                 os.write("Usage: linkComputer: (SourceIP) (RemoteIP)");
             }
             computer.links.Add(os.netMap.nodes.IndexOf(computer2));
-            return false;
         }
-        public static bool UnlinkComputer(OS os, List<string> args)
+        public static void UnlinkComputer(OS os, string[] args)
         {
             Computer computer1 = Programs.getComputer(os, args[1]);
             Computer computer2 = Programs.getComputer(os, args[2]);
             computer1.links.Remove(os.netMap.nodes.IndexOf(computer2));
-            return false;
         }
-        public static bool LoseAllNodes(OS os, List<string> args)
+        public static void LoseAllNodes(OS os, string[] args)
         {
             for (int index = 1; index < os.netMap.nodes.Count; ++index)
             {
@@ -828,9 +782,8 @@ namespace DebugMod
                 });
                 os.netMap.visibleNodes.Remove(index);
             }
-            return false;
         }
-        public static bool LoseNode(OS os, List<string> args)
+        public static void LoseNode(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             int CompToRemove = os.netMap.nodes.IndexOf(computer);
@@ -845,16 +798,14 @@ namespace DebugMod
                 HasHighlightCircle = true
             });
             os.netMap.visibleNodes.Remove(CompToRemove);
-            return false;
         }
-        public static bool RevealNode(OS os, List<string> args)
+        public static void RevealNode(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             int CompToReveal = os.netMap.nodes.IndexOf(computer);
             os.netMap.visibleNodes.Add(CompToReveal);
-            return false;
         }
-        public static bool RemoveComputer(OS os, List<string> args)
+        public static void RemoveComputer(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             int CompToRemove = os.netMap.nodes.IndexOf(computer);
@@ -870,52 +821,44 @@ namespace DebugMod
             });
             os.netMap.visibleNodes.Remove(CompToRemove);
             os.netMap.nodes.Remove(computer);
-            return false;
         }
-        public static bool ResetIP(OS os, List<string> args)
+        public static void ResetIP(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             computer.ip = NetworkMap.generateRandomIP();
-            return false;
         }
-        public static bool ResetPlayerCompIP(OS os, List<string> args)
+        public static void ResetPlayerCompIP(OS os, string[] args)
         {
             os.thisComputerIPReset();
-            return false;
         }
-        public static bool SetIP(OS os, List<string> args)
+        public static void SetIP(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             computer.ip = args[2];
-            return false;
         }
-        public static bool ShowFlags(OS os, List<string> args)
+        public static void ShowFlags(OS os, string[] args)
         {
             os.write(os.Flags.GetSaveString());
-            return false;
         }
-        public static bool AddFlag(OS os, List<string> args)
+        public static void AddFlag(OS os, string[] args)
         {
             os.Flags.AddFlag(args[1]);
-            return false;
         }
-        public static bool RemoveFlag(OS os, List<string> args)
+        public static void RemoveFlag(OS os, string[] args)
         {
             os.Flags.RemoveFlag(args[1]);
-            return false;
         }
-        public static bool AuthenticateToIRC(OS os, List<string> args)
+        public static void AuthenticateToIRC(OS os, string[] args)
         {
             os.Flags.RemoveFlag("DLC_Player_IRC_Authenticated");
-            return false;
         }
-        public static bool AddAgentToIRC(OS os, List<string> args)
+        public static void AddAgentToIRC(OS os, string[] args)
         {
             Computer computerobject = Programs.getComputer(os, args[1]);
-            if (args.Count < 6)
+            if (args.Length < 6)
             {
                 os.write("Usage: addAgentToIRC (NameORIDORIP) (AgentName) (AgentPassword) (AgentColourRed) (AgentColourBlue) (AgentColourGreen)");
-                return false;
+                return;
             }
             try
             {
@@ -931,72 +874,64 @@ namespace DebugMod
             catch
             {
                 os.write("Usage: addAgentToIRC (NameORIDORIP) (AgentName) (AgentPassword) (AgentColourRed) (AgentColourBlue) (AgentColourGreen)");
-                return false;
             }
             string computer = computerobject.idName;
             DLCHubServer IRC = Programs.getComputer(os, computer).getDaemon(typeof(DLCHubServer)) as DLCHubServer;
-            XNA.Color colour = new XNA.Color(Convert.ToInt32(args[4]), Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
+            Color colour = new Color(Convert.ToInt32(args[4]), Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
             IRC.AddAgent(args[2], args[3], colour);
-            return false;
         }
-        public static bool SetCompPorts(OS os, List<string> args)
+        public static void SetCompPorts(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             ComputerLoader.loadPortsIntoComputer(args[2], computer);
-            return false;
         }
-        public static bool AddCustomPortToComp(OS os, List<string> args)
+        public static void AddCustomPortToComp(OS os, string[] args)
         {
-            
-            return false;
+            //TODO: Make AddCustomPortToComp
         }
-        public static bool RemoveCustomPortFromComp(OS os, List<string> args)
+        public static void RemoveCustomPortFromComp(OS os, string[] args)
         {
+            //TODO: Make RemoveCustomPortFromComp
+            /*
             Computer computer = Programs.getComputer(os, args[1]);
             Pathfinder.Game.Computer.Extensions.GetModdedPortList(computer);
-            return false;
+            */
         }
-        public static bool AddSongChangerDaemon(OS os, List<string> args)
+        public static void AddSongChangerDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             SongChangerDaemon daemon = new SongChangerDaemon(computer, os);
             computer.daemons.Add(daemon);
-            return false;
         }
-        public static bool AddRicerConnectDaemon(OS os, List<string> args)
+        public static void AddRicerConnectDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             CustomConnectDisplayDaemon daemon = new CustomConnectDisplayDaemon(computer, os);
             computer.daemons.Add(daemon);
-            return false;
         }
-        public static bool AddDLCCreditsDaemon(OS os, List<string> args)
+        public static void AddDLCCreditsDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             DLCCreditsDaemon daemon = new DLCCreditsDaemon(computer, os);
             computer.daemons.Add(daemon);
-            return false;
         }
-        public static bool AddIRCDaemon(OS os, List<string> args)
+        public static void AddIRCDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             IRCDaemon daemon = new IRCDaemon(computer, os, args[2]);
             computer.daemons.Add(daemon);
-            return false;
         }
-        public static bool AddISPDaemon(OS os, List<string> args)
+        public static void AddISPDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             ISPDaemon daemon = new ISPDaemon(computer, os);
             computer.daemons.Add(daemon);
-            return false;
         }
-        public static bool Quit(OS os, List<string> args)
+        public static void Quit(OS os, string[] args)
         {
             Game1.getSingleton().Exit();
-            return false;
         }
-        public static bool DeleteLogs(OS os, List<string> args)
+        public static void DeleteLogs(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             //Console.WriteLine("Computer object obtained");
@@ -1004,94 +939,81 @@ namespace DebugMod
             //Console.WriteLine("Folder object obtained");
             folder.files.Clear();
             //Console.WriteLine("Deleted all logs");
-            return false;
         }
-        public static bool ForkbombProof(OS os, List<string> args)
+        public static void ForkbombProof(OS os, string[] args)
         {
             os.totalRam = 1000000000;
-            return false;
         }
-        public static bool ChangeCompIcon(OS os, List<string> args)
+        public static void ChangeCompIcon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             computer.icon = args[2];
-            return false;
         }
-        public static bool RemoveSongChangerDaemon(OS os, List<string> args)
+        public static void RemoveSongChangerDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             Daemon daemon = computer.getDaemon(typeof(SongChangerDaemon));
             computer.daemons.Remove(daemon);
-            return false;
         }
-        public static bool RemoveRicerConnectDaemon(OS os, List<string> args)
+        public static void RemoveRicerConnectDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             Daemon daemon = computer.getDaemon(typeof(CustomConnectDisplayDaemon));
             computer.daemons.Remove(daemon);
-            return false;
         }
-        public static bool RemoveDLCCreditsDaemon(OS os, List<string> args)
+        public static void RemoveDLCCreditsDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             Daemon daemon = computer.getDaemon(typeof(DLCCreditsDaemon));
             computer.daemons.Remove(daemon);
-            return false;
         }
-        public static bool RemoveIRCDaemon(OS os, List<string> args)
+        public static void RemoveIRCDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             Daemon daemon = computer.getDaemon(typeof(IRCDaemon));
             computer.daemons.Remove(daemon);
-            return false;
         }
-        public static bool RemoveISPDaemon(OS os, List<string> args)
+        public static void RemoveISPDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             Daemon daemon = computer.getDaemon(typeof(ISPDaemon));
             computer.daemons.Remove(daemon);
-            return false;
         }
-        public static bool ForkbombVirus(OS os, List<string> args) // Bugged
+        public static void ForkbombVirus(OS os, string[] args) // Bugged
         {
             for (int index = 1; index < os.netMap.nodes.Count; ++index)
                 os.netMap.nodes[index].crash(os.thisComputer.ip);
-
-
-
-            return false;
         }
-        public static bool InstallInviolabilty(OS os, List<string> args)
+        public static void InstallInviolabilty(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             computer.portsNeededForCrack = 9999999;
-            return false;
         }
-        public static bool RemoveAllDaemons(OS os, List<string> args)
+        public static void RemoveAllDaemons(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             computer.daemons.Clear();
-            return false;
         }
-        public static bool ShowIPNamesAndID(OS os, List<string> args)
+        public static void ShowIPNamesAndID(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             os.write("ID: " + computer.idName);
             os.write("Name: " + computer.name);
             os.write("IP: " + computer.ip);
-            return false;
         }
-        public static bool SummonDebugModDaemonComp(OS os, List<string> args)
+        public static void SummonDebugModDaemonComp(OS os, string[] args)
         {
+            //TODO: Make SummonDebugModDaemonComp
+            /*
             Computer computer = new Computer("DebugMod Comp", NetworkMap.generateRandomIP(), os.netMap.getRandomPosition(), 50000, 2, os);
             computer.idName = "debugMod";
             os.netMap.nodes.Add(computer);
             Dictionary<string, string> dict = new Dictionary<string, string>();
             Pathfinder.Game.Computer.Extensions.AddModdedDaemon(computer, "DebugModDaemon");
             os.execute("connect " + computer.ip);
-            return false;
+            */
         }
-        public static bool ChangeAdmin(OS os, List<string> args)
+        public static void ChangeAdmin(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             if (args[2] == "basic")
@@ -1119,9 +1041,8 @@ namespace DebugMod
                 os.write("Usage: changeAdmin (IDORIPORName) (Admin)");
                 os.write("Valid options: basic,fastbasic,fastprogress,alwaysactive,none");
             }
-            return false;
         }
-        public static bool ViewAdmin(OS os, List<string> args)
+        public static void ViewAdmin(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             if (computer.admin == new BasicAdministrator())
@@ -1145,10 +1066,9 @@ namespace DebugMod
                 os.write("You may of entered the computer incorrectly or there is no admin for the computer.");
                 os.write("Usage: viewAdmin (IPORIDORName)");
             }
-            return false;
         }
 
-        public static bool ReplayPlaneMission(OS os, List<string> args)
+        public static void ReplayPlaneMission(OS os, string[] args)
         {
             Computer DHS = Programs.getComputer(os, "dhs");
             Computer CrashPlane = Programs.getComputer(os, "dair_crash");
@@ -1158,11 +1078,11 @@ namespace DebugMod
             Folder SecondaryPlaneFolder = SecondaryPlane.files.root.searchForFolder("FlightSystems");
             AircraftDaemon CrashPlaneDaemon = ((AircraftDaemon)CrashPlane.getDaemon(typeof(AircraftDaemon)));
             AircraftDaemon SecondaryPlaneDaemon = ((AircraftDaemon)SecondaryPlane.getDaemon(typeof(AircraftDaemon)));
-            if (!os.Flags.HasFlag("dlc_complete") && args.Count == 1)
+            if (!os.Flags.HasFlag("dlc_complete") && args.Length == 1)
             {
                 os.write("You have not completed the dlc yet, if you want spoilers and wish to continue, type this command:");
                 os.write("replayPlaneMission y");
-                return false;
+                return;
             }
             os.homeAssetServerID = "dhsDrop";
             os.homeNodeID = "dhs";
@@ -1222,87 +1142,73 @@ namespace DebugMod
 
             }
             DLC1SessionUpgrader.EndDLCSection(os);
-            return false;
         }
-        public static bool ReplayPlaneMissionSecondary(OS os, List<string> args)
+        public static void ReplayPlaneMissionSecondary(OS os, string[] args)
         {
-            Hacknet.Misc.SessionAccelerator.AccelerateSessionToDLCEND(os);
-            return false;
+            Hacknet.Misc.SessionAccelerator.AccelerateSessionToDLCEND(os);   
         }
-        public static bool TellPeopleYouAreGonnaHackThemOnline(Hacknet.OS os, List<string> args)
+        public static void TellPeopleYouAreGonnaHackThemOnline(Hacknet.OS os, string[] args)
         {
-            os.traceTracker.start(200f);
-            return false;
+            os.traceTracker.start(200f);   
         }
-        public static bool MyFatherIsCCC(OS os, List<string> args)
+        public static void MyFatherIsCCC(OS os, string[] args)
         {
             os.traceTracker.start(5f);
-            return false;
         }
-        public static bool CantTouchThis(OS os, List<string> args)
+        public static void CantTouchThis(OS os, string[] args)
         {
             os.traceTracker.start(99999f);
-            return false;
         }
-        public static bool ViewFaction(OS os, List<string> args)
+        public static void ViewFaction(OS os, string[] args)
         {
             os.write(os.currentFaction.name);
-            return false;
         }
-        public static bool ViewPlayerVal(OS os, List<string> args)
+        public static void ViewPlayerVal(OS os, string[] args)
         {
             os.write(Convert.ToString(os.currentFaction.playerValue));
-            return false;
         }
-        public static bool KaguyaTrialEffect(OS os, List<string> args)
+        public static void KaguyaTrialEffect(OS os, string[] args)
         {
             int y = 0;
             Rectangle location = new Rectangle(os.ram.bounds.X, y, RamModule.MODULE_WIDTH, (int)OS.EXE_MODULE_HEIGHT);
             DLCIntroExe exe = new DLCIntroExe(location, os, null);
             AccessBypass.CallPrivateMethod<DLCIntroExe>(exe, "AddRadialMailLine");
-            return false;
         }
-        public static bool KaguyaTrialEffect2(OS os, List<string> args)
+        public static void KaguyaTrialEffect2(OS os, string[] args)
         {
-            float timeInExplosion = 0f;
+            //float timeInExplosion = 0f;
             int y = 0;
             Rectangle location = new Rectangle(os.ram.bounds.X, y, RamModule.MODULE_WIDTH, (int)OS.EXE_MODULE_HEIGHT);
             DLCIntroExe exe = new DLCIntroExe(location, os, null);
             AccessBypass.CallPrivateMethod<DLCIntroExe>(exe, "UpdateUIFlickerIn");
-            return false;
         }
-        public static bool KaguyaTrialEffect3(OS os, List<string> args)
+        public static void KaguyaTrialEffect3(OS os, string[] args)
         {
             int y = 0;
             Rectangle location = new Rectangle(os.ram.bounds.X, y, RamModule.MODULE_WIDTH, (int)OS.EXE_MODULE_HEIGHT);
             DLCIntroExe exe = new DLCIntroExe(location, os, null);
             AccessBypass.CallPrivateMethod<DLCIntroExe>(exe, "CompleteMailPhaseOut");
-            return false;
         }
-        public static bool AntiTrace(OS os, List<string> args)
+        public static void AntiTrace(OS os, string[] args)
         {
             while (!os.Flags.HasFlag("Stop_Anti_Trace"))
             {
                 os.traceTracker.stop();
             }
             os.Flags.RemoveFlag("Stop_Anti_Trace");
-            return false;
         }
-        public static bool StopAntiTrace(OS os, List<string> args)
+        public static void StopAntiTrace(OS os, string[] args)
         {
             os.Flags.AddFlag("Stop_Anti_Trace");
-            return false;
         }
-        public static bool RunHackerScriptFunction(OS os, List<string> args)
+        public static void RunHackerScriptFunction(OS os, string[] args)
         {
             string sourceComp = args[1];
             string targetComp = args[2];
             string command = args[3];
             string[] functionArgs = new string[] { sourceComp, targetComp, command };
-            
-            return false;
         }
-        public static bool AircraftNuke(OS os, List<string> args)
+        public static void AircraftNuke(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             //AircraftDaemon computerdaemon = (AircraftDaemon)computer.getDaemon(typeof(AircraftDaemon));
@@ -1312,79 +1218,62 @@ namespace DebugMod
             computerdaemon.IsInCriticalFirmwareFailure = true;
             computerdaemon.CallPrivateMethod<AircraftDaemon>("CrashAircraft", null);
             computerdaemon.StartReloadFirmware();
-            return false;
         }
-        public static bool AddAircraftDaemon(OS os, List<string> args)
+        public static void AddAircraftDaemon(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
-            float float1;
-            float float2;
-            float float3;
-            float float4;
-            float float5;
-            float.TryParse(args[3], out float1);
-            float.TryParse(args[4], out float2);
-            float.TryParse(args[5], out float3);
-            float.TryParse(args[6], out float4);
-            float.TryParse(args[7], out float5);
+            float.TryParse(args[3], out float float1);
+            float.TryParse(args[4], out float float2);
+            float.TryParse(args[5], out float float3);
+            float.TryParse(args[6], out float float4);
+            float.TryParse(args[7], out float float5);
             Vector2 origin = new Vector2(float1, float2);
             Vector2 dest = new Vector2(float3, float4);
             AircraftDaemon daemon = new AircraftDaemon(computer, os, args[2], origin, dest, float5);
             computer.daemons.Add(daemon);
-            return false;
         }
-        public static bool SetAircraftAltitude(OS os, List<string> args)
+        public static void SetAircraftAltitude(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             AircraftDaemon aircraft = (AircraftDaemon)computer.getDaemon(typeof(AircraftDaemon));
             aircraft.CurrentAltitude = Convert.ToDouble(args[2]);
-            return false;
         }
-        public static bool SetAircraftSpeed(OS os, List<string> args)
+        public static void SetAircraftSpeed(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             AircraftDaemon aircraft = (AircraftDaemon)computer.getDaemon(typeof(AircraftDaemon));
-            float speed;
-            float.TryParse(args[2], out speed);
+            float.TryParse(args[2], out float speed);
             aircraft.SetPrivateField("currentAirspeed", speed);
-            return false;
         }
-        public static bool SetAircraftRateOfClimb(OS os, List<string> args)
+        public static void SetAircraftRateOfClimb(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             AircraftDaemon aircraft = (AircraftDaemon)computer.getDaemon(typeof(AircraftDaemon));
-            float climbrate;
-            float.TryParse(args[2], out climbrate);
+            float.TryParse(args[2], out float climbrate);
             aircraft.SetPrivateField("rateOfClimb", climbrate);
-            return false;
         }
-        public static bool SetAircraftFirmwareFailure(OS os, List<string> args)
+        public static void SetAircraftFirmwareFailure(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             AircraftDaemon aircraft = (AircraftDaemon)computer.getDaemon(typeof(AircraftDaemon));
             aircraft.IsInCriticalFirmwareFailure = true;
-            return false;
         }
-        public static bool SetAircraftFirmwareSucessful(OS os, List<string> args)
+        public static void SetAircraftFirmwareSucessful(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             AircraftDaemon aircraft = (AircraftDaemon)computer.getDaemon(typeof(AircraftDaemon));
             aircraft.IsInCriticalFirmwareFailure = false;
-            return false;
         }
-        public static bool SetAircraftProgress(OS os, List<string> args)
+        public static void SetAircraftProgress(OS os, string[] args)
         {
             Computer computer = Programs.getComputer(os, args[1]);
             AircraftDaemon aircraft = (AircraftDaemon)computer.getDaemon(typeof(AircraftDaemon));
-            float progress;
-            float.TryParse(args[2], out progress);
+            float.TryParse(args[2], out float progress);
             aircraft.SetPrivateField("FlightProgress", progress);
-            return false;
         }
-        public static bool KaguyaTrialEffect5(OS os, List<string> args)
+        public static void KaguyaTrialEffect5(OS os, string[] args)
         {
             SFX.addCircle(os.mailicon.pos + new Vector2(20f, 6f), Utils.AddativeRed * 0.8f, 100f);
-            return false;
         }
     }
 }

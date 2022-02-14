@@ -12,6 +12,8 @@ using Hacknet.UIUtils;
 
 namespace DebugMod
 {
+    //TODO: Rewrite DebugDaemon
+    /*
     class DebugDaemon : IInterface
     {
         public string InitialServiceName => "DebugMod";
@@ -189,4 +191,5 @@ optional, you can skip it by typing null.";
             Blank,
         }
     }
+    */
 }

@@ -3,19 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Hacknet;
+using Microsoft.Xna.Framework;
 using Pathfinder;
 
 namespace DebugMod
 {
-    class DebugAppExe : Pathfinder.Executable.Interface
+    class DebugAppExe : Pathfinder.Executable.BaseExecutable
     {
-        public override string Identifier => "DebugAppExe";
-        public override bool NeedsProxyAccess => false;
-        public override int RamCost => 500;
-
-        public override bool? Update(Pathfinder.Executable.Instance instance, float time)
+        public DebugAppExe(Rectangle location, OS operatingSystem, string[] args) : base(location, operatingSystem, args)
         {
-            return true;
+            needsProxyAccess = false;
+            ramCost = 500;
+            IdentifierName = "DebugAppExe";
+        }
+
+        public override void Update(float t)
+        {
+            base.Update(t);
+        }
+
+        public override void Completed()
+        {
+            base.Completed();
         }
     }
 }

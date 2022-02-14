@@ -3,12 +3,70 @@ using Command = Pathfinder.Command;
 using Hacknet;
 using Pathfinder.Event;
 using System.Net;
+using BepInEx;
+using BepInEx.Hacknet;
 
 namespace DebugMod
 {
-    public class DebugMod : Pathfinder.ModManager.IMod
+    internal class INTERNALSETUP
     {
-        public static string version = "2.0-beta2.5c";
+        public static void DebugLog(string[] args, string join = " ", string type = "Message", ConsoleColor color = ConsoleColor.White)
+        {
+            if (args.Length == 0)
+            {
+                Console.WriteLine("");
+                return;
+            }
+            else
+            {
+                ConsoleColor consoleColor = Console.ForegroundColor;
+
+                Console.ForegroundColor = color;
+                Console.WriteLine($"[{type}] " + string.Join(join, args));
+                Console.ForegroundColor = consoleColor;
+            }
+        }
+
+        // addAutocomplete is false until fixed
+        public static void RegisterCommand(string commandName, Action<OS, string[]> handler, bool addAutocomplete = true, bool caseSensitive = false)
+        {
+            if (addAutocomplete == true) // since addAutocomplete doesnt work rn
+                addAutocomplete = false;
+
+            try
+            {
+                DebugMod.TotalCommands += 1;
+                Command.CommandManager.RegisterCommand(commandName, handler, addAutocomplete, caseSensitive);
+                DebugMod.CommandsLoaded += 1;
+            }
+            catch (Exception e)
+            {
+                // we dont want it to error if its already been registered
+                Exception test = new ArgumentException($"Command {commandName} has already been registered!", nameof(commandName));
+                if (e.Message != test.Message)
+                {
+                    throw e;
+                }
+                else
+                {
+                    DebugLog(new string[] { e.Message, e.StackTrace }, "\n", "Warn", ConsoleColor.DarkYellow);
+                }
+            }
+        }
+    }
+
+    [BepInPlugin(ModGUID, ModName, ModVer)]
+    public class DebugMod : HacknetPlugin
+    {
+        public const string ModGUID = "com.DebugMod";
+        public const string ModName = "DebugMod";
+        public const string ModVer = "1.0.0";
+        private bool alreadyLoaded = false;
+        private bool shouldLoad = true;
+        public static int CommandsLoaded { get; internal set; } = 0;
+        public static int TotalCommands { get; internal set; } = 0;
+
+        public static string version = ModVer;
         public static string newVersion = GetVersion();
         public string GetIdentifier()
         {
@@ -17,8 +75,9 @@ namespace DebugMod
 
         private static string GetVersion()
         {
-            WebClient client = new WebClient();
-            return client.DownloadString("https://raw.githubusercontent.com/oxygencraft/DebugMod/master/VersionFile.txt");
+            //WebClient client = new WebClient();
+            //return client.DownloadString("https://raw.githubusercontent.com/oxygencraft/DebugMod/master/VersionFile.txt");
+            return version;
         }
 
         public string Identifier
@@ -29,130 +88,160 @@ namespace DebugMod
             }
         }
 
-        public void Load()
+        public override bool Load()
         {
+            if (alreadyLoaded)
+            {
+                return false;
+            }
+
+            alreadyLoaded = true;
+
             Console.WriteLine("Loading Debug Mod");
+
+            // Load all content
+            LoadContent();
+
+            INTERNALSETUP.DebugLog(new string[] { $"{CommandsLoaded}/{TotalCommands} commands loaded" }, "\n", "Warn", ConsoleColor.DarkYellow);
+
+            // Patch Assembly
+            HarmonyInstance.PatchAll(typeof(DebugMod).Assembly);
+
+            return shouldLoad;
         }
 
-        public void LoadContent()
+        private void LoadContent()
         {
-            bool DebugEnabled = true;
-            Command.Handler.RegisterCommand("openAllPorts", Commands.OpenAllPorts, autoComplete:true); // Works
-            Command.Handler.RegisterCommand("bypassProxy", Commands.BypassProxy, autoComplete:true); // Works
-            Command.Handler.RegisterCommand("solveFirewall", Commands.SolveFirewall, autoComplete:true); // Works
-            Command.Handler.RegisterCommand("getAdmin", Commands.GetAdmin, autoComplete:true); // Works
-            Command.Handler.RegisterCommand("loseAdmin", Commands.LoseAdmin, autoComplete:true); // Works
-
-
-            if (DebugEnabled)
+            try
             {
-                Command.Handler.RegisterCommand("startDeathSeq", Commands.DeathSeq, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("cancelDeathSeq", Commands.CancelDeathSeq, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("setHomeNodeServer", Commands.SetHomeNodeServer, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("setHomeAssetServer", Commands.SetHomeAssetServer, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("debug", Commands.Debug, autoComplete:false); // Works   
-                Command.Handler.RegisterCommand("revealAll", Commands.RevealAll, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("addIRCMessage", Commands.AddIRCMessage, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("strikerAttack", Commands.StrikerAttack, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("themeAttack", Commands.ThemeAttack, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("callThePoliceSoTheyCanTraceYou", Commands.CallThePoliceSoTheyCanTraceYou, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("reportYourselfToFBI", Commands.ReportYourselfToFBI, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("traceYourselfIn", Commands.TraceYourselfIn, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("warningFlash", Commands.WarningFlash, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("stopTrace", Commands.StopTrace, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("hideDisplay", Commands.HideDisplay, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("hideNetMap", Commands.HideNetMap, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("hideTerminal", Commands.HideTerminal, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("hideRAM", Commands.HideRAM, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("showDisplay", Commands.ShowDisplay, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("showNetMap", Commands.ShowNetMap, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("showTerminal", Commands.ShowTerminal, autoComplete:false); // Unknown
-                Command.Handler.RegisterCommand("showRAM", Commands.ShowRAM, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("getUniversalAdmin", Commands.GetUniversalAdmin, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("changeUserDetails", Commands.ChangeUserDetails, autoComplete:false); // Partial
-                //Command.Handler.RegisterCommand("executeHack", Commands.ExecuteHack, autoComplete:false);
-                Command.Handler.RegisterCommand("generateExampleAcademicRecord", Commands.GenerateExampleAcadmicRecord, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("generateExampleMedicalRecord", Commands.GenerateExampleMedicalRecord, autoComplete:false); // Fixed
-                Command.Handler.RegisterCommand("changeMusic", Commands.ChangeMusic, autoComplete:false); // Fixed
-                Command.Handler.RegisterCommand("crashComputer", Commands.CrashComputer, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("addProxy", Commands.AddProxy, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("addFirewall", Commands.AddFirewall, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("addUser", Commands.AddUser, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("openPort", Commands.OpenPort, autoComplete:false); 
-                Command.Handler.RegisterCommand("closeAllPorts", Commands.CloseAllPorts, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("closePort", Commands.ClosePort, autoComplete:false); // Fixed
-                Command.Handler.RegisterCommand("removeProxy", Commands.RemoveProxy, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("playSFX", Commands.PlaySFX, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("deleteWhitelistDLL", Commands.DeleteWhitelistDLL, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("addComputer", Commands.AddComputer, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("getMoreRAM", Commands.GetMoreRAM, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("setFaction", Commands.SetFaction, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("tracedBehind250Proxies", Commands.TracedBehind250Proxies, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("oxygencraftStorageFacilityCache", Commands.OxygencraftStorageFaciltyCache, autoComplete:false); // Don't tell anyone about this command, keep it a secret: Note: Bugged
-                Command.Handler.RegisterCommand("disableEmailIcon", Commands.DisableEmailIcon, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("enableEmailIcon", Commands.EnableEmailIcon, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("nodeRestore", Commands.NodeRestore, autoComplete:false); // Unknown
-                Command.Handler.RegisterCommand("addWhiteCircle", Commands.AddRestoreCircle, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("whitelistBypass", Commands.WhitelistBypass, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("setTheme", Commands.SetTheme, autoComplete:false);  // Works
-                Command.Handler.RegisterCommand("setCustomTheme", Commands.SetCustomTheme, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("linkComputer", Commands.LinkComputer, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("unlinkComputer", Commands.UnlinkComputer, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("loseAllNodes", Commands.LoseAllNodes, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("loseNode", Commands.LoseNode, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("revealNode", Commands.RevealNode, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("removeComputer", Commands.RemoveComputer, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("resetIP", Commands.ResetIP, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("resetPlayerCompIP", Commands.ResetPlayerCompIP, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("setIP", Commands.SetIP, autoComplete:false); // Works
-                Command.Handler.RegisterCommand("showFlags", Commands.ShowFlags, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("addFlag", Commands.AddFlag, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("removeFlag", Commands.RemoveFlag, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("authenticateToIRC", Commands.AuthenticateToIRC, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("addAgentToIRC", Commands.AddAgentToIRC, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("setCompPorts", Commands.SetCompPorts, autoComplete: false); // Works
-                //Command.Handler.RegisterCommand("removePortFromComp", Commands.RemovePortFromComp, autoComplete: false); Replaced with setCompPorts
-                Command.Handler.RegisterCommand("addSongChangerDaemon", Commands.AddSongChangerDaemon, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("addRicerConnectDaemon", Commands.AddRicerConnectDaemon, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("addDLCCreditsDaemon", Commands.AddDLCCreditsDaemon, autoComplete: false); // Works
-                //Command.Handler.RegisterCommand("addIRCDaemon", Commands.AddIRCDaemon, autoComplete: false);
-                Command.Handler.RegisterCommand("addISPDaemon", Commands.AddISPDaemon, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("quit", Commands.Quit, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("deleteLogs", Commands.DeleteLogs, autoComplete: false); // Works
-                Command.Handler.RegisterCommand("forkbombProof", Commands.ForkbombProof, autoComplete: false); // Works
+                bool DebugEnabled = true;
+                INTERNALSETUP.RegisterCommand("openAllPorts", Commands.OpenAllPorts, true); // Works
+                INTERNALSETUP.RegisterCommand("bypassProxy", Commands.BypassProxy, true); // Works
+                INTERNALSETUP.RegisterCommand("solveFirewall", Commands.SolveFirewall, true); // Works
+                INTERNALSETUP.RegisterCommand("getAdmin", Commands.GetAdmin, true); // Works
+                INTERNALSETUP.RegisterCommand("loseAdmin", Commands.LoseAdmin, true); // Works
 
-                Command.Handler.RegisterCommand("changeCompIcon", Commands.ChangeCompIcon, autoComplete: false);
-                Command.Handler.RegisterCommand("removeSongChangerDaemon", Commands.RemoveSongChangerDaemon, autoComplete: false);
-                Command.Handler.RegisterCommand("removeRicerConnectDaemon", Commands.RemoveRicerConnectDaemon, autoComplete: false);
-                Command.Handler.RegisterCommand("removeDLCCreditsDaemon", Commands.RemoveDLCCreditsDaemon, autoComplete: false);
-                //Command.Handler.RegisterCommand("removeIRCDaemon", Commands.RemoveIRCDaemon, autoComplete: false);
-                Command.Handler.RegisterCommand("removeISPDaemon", Commands.RemoveISPDaemon, autoComplete: false);
-                Command.Handler.RegisterCommand("forkbombVirus", Commands.ForkbombVirus, autoComplete: false);
-                Command.Handler.RegisterCommand("installInviolabilty", Commands.InstallInviolabilty, autoComplete: false);
-                Command.Handler.RegisterCommand("removeAllDaemons", Commands.RemoveAllDaemons, autoComplete: false);
-                Command.Handler.RegisterCommand("showIPNamesAndID", Commands.ShowIPNamesAndID, autoComplete: false);
-                Command.Handler.RegisterCommand("changeAdmin", Commands.ChangeAdmin, autoComplete: false);
-                Command.Handler.RegisterCommand("viewAdmin", Commands.ViewAdmin, autoComplete: false);
-                Command.Handler.RegisterCommand("tellPeopleYouAreGonnaHackThemOnline", Commands.TellPeopleYouAreGonnaHackThemOnline, autoComplete: false);
-                Command.Handler.RegisterCommand("myFatherIsCCC", Commands.MyFatherIsCCC, autoComplete: false);
-                Command.Handler.RegisterCommand("cantTouchThis", Commands.CantTouchThis, autoComplete: false);
-                Command.Handler.RegisterCommand("replayPlaneMission", Commands.ReplayPlaneMission, autoComplete: false);
-                Command.Handler.RegisterCommand("replayPlaneMissionSecondary", Commands.ReplayPlaneMissionSecondary, autoComplete: false);
-                Command.Handler.RegisterCommand("viewFaction", Commands.ViewFaction, autoComplete: false);
-                Command.Handler.RegisterCommand("viewPlayerVal", Commands.ViewPlayerVal, autoComplete: false);
-                Command.Handler.RegisterCommand("kaguyaTrialEffect", Commands.KaguyaTrialEffect, autoComplete: false);
-                Command.Handler.RegisterCommand("kaguyaTrialEffect2", Commands.KaguyaTrialEffect2, autoComplete: false);
-                Command.Handler.RegisterCommand("kaguyaTrialEffect3", Commands.KaguyaTrialEffect3, autoComplete: false);
-                Command.Handler.RegisterCommand("summonDebugModDaemonComp", Commands.SummonDebugModDaemonComp, autoComplete: false);
-                Pathfinder.Daemon.IInterface daemon = new DebugDaemon();
-                Pathfinder.Daemon.Handler.RegisterDaemon("DebugModDaemon", daemon);
-                /*if (version != newVersion)
+
+                if (DebugEnabled)
                 {
-                    EventManager.RegisterListener<OSLoadSaveFileEvent>(NewUpdateAlert);
-                } */
+                    INTERNALSETUP.RegisterCommand("startDeathSeq", Commands.DeathSeq, false); // Works
+                    INTERNALSETUP.RegisterCommand("cancelDeathSeq", Commands.CancelDeathSeq, false); // Works
+                    INTERNALSETUP.RegisterCommand("setHomeNodeServer", Commands.SetHomeNodeServer, false); // Works
+                    INTERNALSETUP.RegisterCommand("setHomeAssetServer", Commands.SetHomeAssetServer, false); // Works
+                    INTERNALSETUP.RegisterCommand("debug", Commands.Debug, false); // Works   
+                    INTERNALSETUP.RegisterCommand("revealAll", Commands.RevealAll, false); // Works
+                    INTERNALSETUP.RegisterCommand("addIRCMessage", Commands.AddIRCMessage, false); // Works
+                    INTERNALSETUP.RegisterCommand("strikerAttack", Commands.StrikerAttack, false); // Works
+                    INTERNALSETUP.RegisterCommand("themeAttack", Commands.ThemeAttack, false); // Works
+                    INTERNALSETUP.RegisterCommand("callThePoliceSoTheyCanTraceYou", Commands.CallThePoliceSoTheyCanTraceYou, false); // Works
+                    INTERNALSETUP.RegisterCommand("reportYourselfToFBI", Commands.ReportYourselfToFBI, false); // Works
+                    INTERNALSETUP.RegisterCommand("traceYourselfIn", Commands.TraceYourselfIn, false); // Works
+                    INTERNALSETUP.RegisterCommand("warningFlash", Commands.WarningFlash, false); // Works
+                    INTERNALSETUP.RegisterCommand("stopTrace", Commands.StopTrace, false); // Works
+                    INTERNALSETUP.RegisterCommand("hideDisplay", Commands.HideDisplay, false); // Works
+                    INTERNALSETUP.RegisterCommand("hideNetMap", Commands.HideNetMap, false); // Works
+                    INTERNALSETUP.RegisterCommand("hideTerminal", Commands.HideTerminal, false); // Works
+                    INTERNALSETUP.RegisterCommand("hideRAM", Commands.HideRAM, false); // Works
+                    INTERNALSETUP.RegisterCommand("showDisplay", Commands.ShowDisplay, false); // Works
+                    INTERNALSETUP.RegisterCommand("showNetMap", Commands.ShowNetMap, false); // Works
+                    INTERNALSETUP.RegisterCommand("showTerminal", Commands.ShowTerminal, false); // Unknown
+                    INTERNALSETUP.RegisterCommand("showRAM", Commands.ShowRAM, false); // Works
+                    INTERNALSETUP.RegisterCommand("getUniversalAdmin", Commands.GetUniversalAdmin, false); // Works
+                    INTERNALSETUP.RegisterCommand("changeUserDetails", Commands.ChangeUserDetails, false); // Partial
+                    //INTERNALSETUP.RegisterCommand("executeHack", Commands.ExecuteHack, false);
+                    INTERNALSETUP.RegisterCommand("generateExampleAcademicRecord", Commands.GenerateExampleAcadmicRecord, false); // Works
+                    INTERNALSETUP.RegisterCommand("generateExampleMedicalRecord", Commands.GenerateExampleMedicalRecord, false); // Fixed
+                    INTERNALSETUP.RegisterCommand("changeMusic", Commands.ChangeMusic, false); // Fixed
+                    INTERNALSETUP.RegisterCommand("crashComputer", Commands.CrashComputer, false); // Works
+                    INTERNALSETUP.RegisterCommand("addProxy", Commands.AddProxy, false); // Works
+                    INTERNALSETUP.RegisterCommand("addFirewall", Commands.AddFirewall, false); // Works
+                    INTERNALSETUP.RegisterCommand("addUser", Commands.AddUser, false); // Works
+                    INTERNALSETUP.RegisterCommand("openPort", Commands.OpenPort, false);
+                    INTERNALSETUP.RegisterCommand("closeAllPorts", Commands.CloseAllPorts, false); // Works
+                    INTERNALSETUP.RegisterCommand("closePort", Commands.ClosePort, false); // Fixed
+                    INTERNALSETUP.RegisterCommand("removeProxy", Commands.RemoveProxy, false); // Works
+                    INTERNALSETUP.RegisterCommand("playSFX", Commands.PlaySFX, false); // Works
+                    INTERNALSETUP.RegisterCommand("deleteWhitelistDLL", Commands.DeleteWhitelistDLL, false); // Works
+                    INTERNALSETUP.RegisterCommand("addComputer", Commands.AddComputer, false); // Works
+                    INTERNALSETUP.RegisterCommand("getMoreRAM", Commands.GetMoreRAM, false); // Works
+                    INTERNALSETUP.RegisterCommand("setFaction", Commands.SetFaction, false); // Works
+                    INTERNALSETUP.RegisterCommand("tracedBehind250Proxies", Commands.TracedBehind250Proxies, false); // Works
+                    INTERNALSETUP.RegisterCommand("oxygencraftStorageFacilityCache", Commands.OxygencraftStorageFaciltyCache, false); // Don't tell anyone about this command, keep it a secret: Note: Bugged
+                    INTERNALSETUP.RegisterCommand("disableEmailIcon", Commands.DisableEmailIcon, false); // Works
+                    INTERNALSETUP.RegisterCommand("enableEmailIcon", Commands.EnableEmailIcon, false); // Works
+                    INTERNALSETUP.RegisterCommand("nodeRestore", Commands.NodeRestore, false); // Unknown
+                    INTERNALSETUP.RegisterCommand("addWhiteCircle", Commands.AddRestoreCircle, false); // Works
+                    INTERNALSETUP.RegisterCommand("whitelistBypass", Commands.WhitelistBypass, false); // Works
+                    INTERNALSETUP.RegisterCommand("setTheme", Commands.SetTheme, false);  // Works
+                    INTERNALSETUP.RegisterCommand("setCustomTheme", Commands.SetCustomTheme, false); // Works
+                    INTERNALSETUP.RegisterCommand("linkComputer", Commands.LinkComputer, false); // Works
+                    INTERNALSETUP.RegisterCommand("unlinkComputer", Commands.UnlinkComputer, false); // Works
+                    INTERNALSETUP.RegisterCommand("loseAllNodes", Commands.LoseAllNodes, false); // Works
+                    INTERNALSETUP.RegisterCommand("loseNode", Commands.LoseNode, false); // Works
+                    INTERNALSETUP.RegisterCommand("revealNode", Commands.RevealNode, false); // Works
+                    INTERNALSETUP.RegisterCommand("removeComputer", Commands.RemoveComputer, false); // Works
+                    INTERNALSETUP.RegisterCommand("resetIP", Commands.ResetIP, false); // Works
+                    INTERNALSETUP.RegisterCommand("resetPlayerCompIP", Commands.ResetPlayerCompIP, false); // Works
+                    INTERNALSETUP.RegisterCommand("setIP", Commands.SetIP, false); // Works
+                    INTERNALSETUP.RegisterCommand("showFlags", Commands.ShowFlags, false); // Works
+                    INTERNALSETUP.RegisterCommand("addFlag", Commands.AddFlag, false); // Works
+                    INTERNALSETUP.RegisterCommand("removeFlag", Commands.RemoveFlag, false); // Works
+                    INTERNALSETUP.RegisterCommand("authenticateToIRC", Commands.AuthenticateToIRC, false); // Works
+                    INTERNALSETUP.RegisterCommand("addAgentToIRC", Commands.AddAgentToIRC, false); // Works
+                    INTERNALSETUP.RegisterCommand("setCompPorts", Commands.SetCompPorts, false); // Works
+                    //INTERNALSETUP.RegisterCommand("removePortFromComp", Commands.RemovePortFromComp,  false); Replaced with setCompPorts
+                    INTERNALSETUP.RegisterCommand("addSongChangerDaemon", Commands.AddSongChangerDaemon, false); // Works
+                    INTERNALSETUP.RegisterCommand("addRicerConnectDaemon", Commands.AddRicerConnectDaemon, false); // Works
+                    INTERNALSETUP.RegisterCommand("addDLCCreditsDaemon", Commands.AddDLCCreditsDaemon, false); // Works
+                    //INTERNALSETUP.RegisterCommand("addIRCDaemon", Commands.AddIRCDaemon,  false);
+                    INTERNALSETUP.RegisterCommand("addISPDaemon", Commands.AddISPDaemon, false); // Works
+                    INTERNALSETUP.RegisterCommand("quit", Commands.Quit, false); // Works
+                    INTERNALSETUP.RegisterCommand("deleteLogs", Commands.DeleteLogs, false); // Works
+                    INTERNALSETUP.RegisterCommand("forkbombProof", Commands.ForkbombProof, false); // Works
+
+                    INTERNALSETUP.RegisterCommand("changeCompIcon", Commands.ChangeCompIcon, false);
+                    INTERNALSETUP.RegisterCommand("removeSongChangerDaemon", Commands.RemoveSongChangerDaemon, false);
+                    INTERNALSETUP.RegisterCommand("removeRicerConnectDaemon", Commands.RemoveRicerConnectDaemon, false);
+                    INTERNALSETUP.RegisterCommand("removeDLCCreditsDaemon", Commands.RemoveDLCCreditsDaemon, false);
+                    //INTERNALSETUP.RegisterCommand("removeIRCDaemon", Commands.RemoveIRCDaemon,  false);
+                    INTERNALSETUP.RegisterCommand("removeISPDaemon", Commands.RemoveISPDaemon, false);
+                    INTERNALSETUP.RegisterCommand("forkbombVirus", Commands.ForkbombVirus, false);
+                    INTERNALSETUP.RegisterCommand("installInviolabilty", Commands.InstallInviolabilty, false);
+                    INTERNALSETUP.RegisterCommand("removeAllDaemons", Commands.RemoveAllDaemons, false);
+                    INTERNALSETUP.RegisterCommand("showIPNamesAndID", Commands.ShowIPNamesAndID, false);
+                    INTERNALSETUP.RegisterCommand("changeAdmin", Commands.ChangeAdmin, false);
+                    INTERNALSETUP.RegisterCommand("viewAdmin", Commands.ViewAdmin, false);
+                    INTERNALSETUP.RegisterCommand("tellPeopleYouAreGonnaHackThemOnline", Commands.TellPeopleYouAreGonnaHackThemOnline, false);
+                    INTERNALSETUP.RegisterCommand("myFatherIsCCC", Commands.MyFatherIsCCC, false);
+                    INTERNALSETUP.RegisterCommand("cantTouchThis", Commands.CantTouchThis, false);
+                    INTERNALSETUP.RegisterCommand("replayPlaneMission", Commands.ReplayPlaneMission, false);
+                    INTERNALSETUP.RegisterCommand("replayPlaneMissionSecondary", Commands.ReplayPlaneMissionSecondary, false);
+                    INTERNALSETUP.RegisterCommand("viewFaction", Commands.ViewFaction, false);
+                    INTERNALSETUP.RegisterCommand("viewPlayerVal", Commands.ViewPlayerVal, false);
+                    INTERNALSETUP.RegisterCommand("kaguyaTrialEffect", Commands.KaguyaTrialEffect, false);
+                    INTERNALSETUP.RegisterCommand("kaguyaTrialEffect2", Commands.KaguyaTrialEffect2, false);
+                    INTERNALSETUP.RegisterCommand("kaguyaTrialEffect3", Commands.KaguyaTrialEffect3, false);
+                    INTERNALSETUP.RegisterCommand("summonDebugModDaemonComp", Commands.SummonDebugModDaemonComp, false);
+                    //TODO: Rewrite DebugDaemon
+                    //Pathfinder.Daemon.IInterface daemon = new DebugDaemon();
+                    //Pathfinder.Daemon.Handler.RegisterDaemon("DebugModDaemon", daemon);
+                    /*if (version != newVersion)
+                    {
+                        EventManager.RegisterListener<OSLoadSaveFileEvent>(NewUpdateAlert);
+                    } */
+                }
+            }
+            catch (Exception e)
+            {
+                if (shouldLoad)
+                    shouldLoad = false;
+
+                INTERNALSETUP.DebugLog(new string[] { "Failed to load Debug Mod", e.Message, e.StackTrace }, "\n", "Error", ConsoleColor.Red);
             }
         }
 
+        //TODO: Remake NewUpdateAlert
+        /*
         public void NewUpdateAlert(OSLoadSaveFileEvent obj)
         {
             OS os = obj.OS;
@@ -165,11 +254,12 @@ namespace DebugMod
             os.delayer.Post(ActionDelayer.Wait(time), action);
             obj.IsCancelled = true;
         }
+        */
 
-        public void Unload()
+        public override bool Unload()
         {
             Console.WriteLine("Unloading Debug Mod");
+            return true;
         }
-
     }
 }
