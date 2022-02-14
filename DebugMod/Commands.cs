@@ -14,6 +14,21 @@ namespace DebugMod
 {
     static class Commands
     {
+        public static bool HasFile(Folder folder, FileEntry file)
+        {
+            bool hasFile;
+
+            try
+            {
+                hasFile = folder.searchForFile(file.name).name != null;
+            }
+            catch
+            {
+                hasFile = false;
+            }
+
+            return hasFile;
+        }
 
         public static void OpenAllPorts(OS os, string[] args)
         {
@@ -71,17 +86,17 @@ namespace DebugMod
         public static void Debug(OS os, string[] args)
         {
             int num = PortExploits.services.Count;
-            var binFiles = os.thisComputer.files.root.folders[2].files;
+            var binFiles = os.thisComputer.files.root.folders[2];
             for (int index = 0; index < PortExploits.services.Count && index < num; ++index)
             {
                 var file = new FileEntry(PortExploits.crackExeData[PortExploits.portNums[index]], PortExploits.cracks[PortExploits.portNums[index]]);
-                bool hasFile = binFiles.Contains(file);
+                bool hasFile = HasFile(binFiles, file);
 
-                os.write(hasFile.ToString() + " " + file.name);
+                //os.write(hasFile.ToString() + " " + file.name);
 
                 if (hasFile == false)
                 {
-                    binFiles.Add(file);
+                    binFiles.files.Add(file);
                 }
                 continue;
             }
@@ -105,13 +120,13 @@ namespace DebugMod
             binFiles.Add(new FileEntry(PortExploits.crackExeData[39], PortExploits.cracks[39]));
             */
             var pacemaker = new FileEntry(PortExploits.DangerousPacemakerFirmware, "KBT_TestFirmware.dll");
-            var hasPacemaker = binFiles.Contains(pacemaker);
+            var hasPacemaker = HasFile(binFiles, pacemaker);
 
-            os.write(hasPacemaker.ToString() + " " + pacemaker.name);
+            //os.write(hasPacemaker.ToString() + " " + pacemaker.name);
 
             if (hasPacemaker == false)
             {
-                binFiles.Add(pacemaker);
+                binFiles.files.Add(pacemaker);
             }
         }
         public static void LoseAdmin(OS os, string[] args)
