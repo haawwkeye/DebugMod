@@ -5,11 +5,74 @@ using Pathfinder.Event;
 using System.Net;
 using BepInEx;
 using BepInEx.Hacknet;
+using System.Linq;
 
 namespace DebugMod
 {
     internal class INTERNALSETUP
     {
+        private static string GetNumbers(string input)
+        {
+            return new string(input.Where(c => char.IsDigit(c)).ToArray());
+        }
+
+        public static string[] PraseVersion(string version)
+        {
+            return version.Split("."[1]); ;
+        }
+
+        internal static bool CheckVersions(string currentVer, string nextVer)
+        {
+            var current = PraseVersion(currentVer);
+            var next = PraseVersion(nextVer);
+
+            bool newVersion = false;
+
+            bool currentReleaseUnknown = int.TryParse(current[1], out int _);
+            bool nextReleaseUnknown = int.TryParse(next[1], out int _);
+            
+            try
+            {
+                if (!nextReleaseUnknown && !currentReleaseUnknown)
+                {
+                    newVersion = (
+                        (int.Parse(current[0]) < int.Parse(next[0]))
+                        || (int.Parse(current[0]) < int.Parse(next[0]))
+                        || (int.Parse(current[0]) < int.Parse(next[0]))
+                    );
+                }
+                else
+                {
+                    var newNext = next;
+                    var newCurrent = current;
+
+                    if (currentReleaseUnknown)
+                    {
+                        newCurrent = PraseVersion(GetNumbers(currentVer));
+                    }
+
+                    if (nextReleaseUnknown)
+                    {
+                        newNext = PraseVersion(GetNumbers(nextVer));
+                    }
+                    // Fun part!
+                    // Since im currently lazy to you know parse if it is or is not alpha or beta etc
+                    newVersion = (
+                        (int.Parse(current[0]) < int.Parse(next[0]))
+                        || (int.Parse(current[0]) < int.Parse(next[0]))
+                        || (int.Parse(current[0]) < int.Parse(next[0]))
+                    );
+                }
+            }
+            catch (Exception e)
+            {
+                DebugLog(new string[] { e.Message, e.StackTrace }, "\n", "Error", ConsoleColor.Red);
+                return false;
+            }
+
+            return newVersion;
+        }
+
         public static void DebugLog(string[] args, string join = " ", string type = "Message", ConsoleColor color = ConsoleColor.White)
         {
             if (args.Length == 0)
@@ -76,13 +139,17 @@ namespace DebugMod
     {
         public const string ModGUID = "com.DebugMod";
         public const string ModName = "DebugMod";
-        public const string ModVer = "1.0.0";
+        public const string ModVer = "1.0.0"; // Might not touch this since custom versions are being used
+
+        private static bool AutoupdateEnabled = false;
+        private static bool IncludeBetaVersions = false;
         private bool alreadyLoaded = false;
         private bool shouldLoad = true;
+        
         public static int CommandsLoaded { get; internal set; } = 0;
         public static int TotalCommands { get; internal set; } = 0;
 
-        public static string version = ModVer;
+        public static string version = "2.0-beta2.7";
         public static string newVersion = GetVersion();
         public string GetIdentifier()
         {
@@ -91,9 +158,18 @@ namespace DebugMod
 
         private static string GetVersion()
         {
-            //WebClient client = new WebClient();
-            //return client.DownloadString("https://raw.githubusercontent.com/oxygencraft/DebugMod/master/VersionFile.txt");
-            return version;
+            WebClient client = new WebClient();
+
+            if (IncludeBetaVersions)
+            {
+                //Normal Release + dev build
+                return client.DownloadString("https://raw.githubusercontent.com/haawwkeye/DebugMod/master/VersionFileBeta.txt");
+            }
+            else
+            {
+                //Normal Release
+                return client.DownloadString("https://raw.githubusercontent.com/haawwkeye/DebugMod/master/VersionFile.txt");
+            }
         }
 
         public string Identifier
@@ -112,6 +188,15 @@ namespace DebugMod
             }
 
             alreadyLoaded = true;
+
+            if (INTERNALSETUP.CheckVersions(version, newVersion))
+            {
+                INTERNALSETUP.DebugLog(new string[] { $"Debug mod is out of date\nCurrent Version: {version}\n New Version: {newVersion}\nAttempting autoupdate" }, "", "Info", ConsoleColor.Cyan);
+                if (AutoupdateEnabled)
+                {
+                    //return false;
+                }
+            }
 
             Console.WriteLine("Loading Debug Mod");
 
@@ -167,7 +252,7 @@ namespace DebugMod
                     INTERNALSETUP.RegisterCommand("getUniversalAdmin", Commands.GetUniversalAdmin, true); // Works
                     INTERNALSETUP.RegisterCommand("changeUserDetails", Commands.ChangeUserDetails, true); // Partial
                     //
-                    INTERNALSETUP.RegisterCommand("executeHack", Commands.ExecuteHack, true);
+                    INTERNALSETUP.RegisterCommand("executeHack", Commands.ExecuteHack, true); // Unknown
                     //
                     INTERNALSETUP.RegisterCommand("generateExampleAcademicRecord", Commands.GenerateExampleAcadmicRecord, true); // Works
                     INTERNALSETUP.RegisterCommand("generateExampleMedicalRecord", Commands.GenerateExampleMedicalRecord, true); // Fixed
@@ -209,47 +294,42 @@ namespace DebugMod
                     INTERNALSETUP.RegisterCommand("authenticateToIRC", Commands.AuthenticateToIRC, true); // Works
                     INTERNALSETUP.RegisterCommand("addAgentToIRC", Commands.AddAgentToIRC, true); // Works
                     INTERNALSETUP.RegisterCommand("setCompPorts", Commands.SetCompPorts, true); // Works
-                    //INTERNALSETUP.RegisterCommand("removePortFromComp", Commands.RemovePortFromComp,  true); Replaced with setCompPorts
                     INTERNALSETUP.RegisterCommand("addSongChangerDaemon", Commands.AddSongChangerDaemon, true); // Works
                     INTERNALSETUP.RegisterCommand("addRicerConnectDaemon", Commands.AddRicerConnectDaemon, true); // Works
                     INTERNALSETUP.RegisterCommand("addDLCCreditsDaemon", Commands.AddDLCCreditsDaemon, true); // Works
                     //
-                    INTERNALSETUP.RegisterCommand("addIRCDaemon", Commands.AddIRCDaemon,  true);
+                    INTERNALSETUP.RegisterCommand("addIRCDaemon", Commands.AddIRCDaemon,  true); // Unknown
                     //
                     INTERNALSETUP.RegisterCommand("addISPDaemon", Commands.AddISPDaemon, true); // Works
                     INTERNALSETUP.RegisterCommand("quit", Commands.Quit, true); // Works
                     INTERNALSETUP.RegisterCommand("deleteLogs", Commands.DeleteLogs, true); // Works
                     INTERNALSETUP.RegisterCommand("forkbombProof", Commands.ForkbombProof, true); // Works
 
-                    INTERNALSETUP.RegisterCommand("changeCompIcon", Commands.ChangeCompIcon, true);
-                    INTERNALSETUP.RegisterCommand("removeSongChangerDaemon", Commands.RemoveSongChangerDaemon, true);
-                    INTERNALSETUP.RegisterCommand("removeRicerConnectDaemon", Commands.RemoveRicerConnectDaemon, true);
-                    INTERNALSETUP.RegisterCommand("removeDLCCreditsDaemon", Commands.RemoveDLCCreditsDaemon, true);
+                    INTERNALSETUP.RegisterCommand("changeCompIcon", Commands.ChangeCompIcon, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("removeSongChangerDaemon", Commands.RemoveSongChangerDaemon, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("removeRicerConnectDaemon", Commands.RemoveRicerConnectDaemon, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("removeDLCCreditsDaemon", Commands.RemoveDLCCreditsDaemon, true); // Unknown
                     //
-                    INTERNALSETUP.RegisterCommand("removeIRCDaemon", Commands.RemoveIRCDaemon,  true);
+                    INTERNALSETUP.RegisterCommand("removeIRCDaemon", Commands.RemoveIRCDaemon,  true); // Unknown
                     //
-                    INTERNALSETUP.RegisterCommand("removeISPDaemon", Commands.RemoveISPDaemon, true);
-                    INTERNALSETUP.RegisterCommand("forkbombVirus", Commands.ForkbombVirus, true);
-                    INTERNALSETUP.RegisterCommand("installInviolabilty", Commands.InstallInviolabilty, true);
-                    INTERNALSETUP.RegisterCommand("removeAllDaemons", Commands.RemoveAllDaemons, true);
-                    INTERNALSETUP.RegisterCommand("showIPNamesAndID", Commands.ShowIPNamesAndID, true);
-                    INTERNALSETUP.RegisterCommand("changeAdmin", Commands.ChangeAdmin, true);
-                    INTERNALSETUP.RegisterCommand("viewAdmin", Commands.ViewAdmin, true);
-                    INTERNALSETUP.RegisterCommand("tellPeopleYouAreGonnaHackThemOnline", Commands.TellPeopleYouAreGonnaHackThemOnline, true);
-                    INTERNALSETUP.RegisterCommand("myFatherIsCCC", Commands.MyFatherIsCCC, true);
-                    INTERNALSETUP.RegisterCommand("cantTouchThis", Commands.CantTouchThis, true);
-                    INTERNALSETUP.RegisterCommand("replayPlaneMission", Commands.ReplayPlaneMission, true);
-                    INTERNALSETUP.RegisterCommand("replayPlaneMissionSecondary", Commands.ReplayPlaneMissionSecondary, true);
-                    INTERNALSETUP.RegisterCommand("viewFaction", Commands.ViewFaction, true);
-                    INTERNALSETUP.RegisterCommand("viewPlayerVal", Commands.ViewPlayerVal, true);
-                    INTERNALSETUP.RegisterCommand("kaguyaTrialEffect", Commands.KaguyaTrialEffect, true);
-                    INTERNALSETUP.RegisterCommand("kaguyaTrialEffect2", Commands.KaguyaTrialEffect2, true);
-                    INTERNALSETUP.RegisterCommand("kaguyaTrialEffect3", Commands.KaguyaTrialEffect3, true);
-                    INTERNALSETUP.RegisterCommand("summonDebugModDaemonComp", Commands.SummonDebugModDaemonComp, true);
-                    /*if (version != newVersion)
-                    {
-                        EventManager.RegisterListener<OSLoadSaveFileEvent>(NewUpdateAlert);
-                    } */
+                    INTERNALSETUP.RegisterCommand("removeISPDaemon", Commands.RemoveISPDaemon, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("forkbombVirus", Commands.ForkbombVirus, true); // Works
+                    INTERNALSETUP.RegisterCommand("installInviolabilty", Commands.InstallInviolabilty, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("removeAllDaemons", Commands.RemoveAllDaemons, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("showIPNamesAndID", Commands.ShowIPNamesAndID, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("changeAdmin", Commands.ChangeAdmin, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("viewAdmin", Commands.ViewAdmin, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("tellPeopleYouAreGonnaHackThemOnline", Commands.TellPeopleYouAreGonnaHackThemOnline, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("myFatherIsCCC", Commands.MyFatherIsCCC, true); // Works
+                    INTERNALSETUP.RegisterCommand("cantTouchThis", Commands.CantTouchThis, true); // Works
+                    INTERNALSETUP.RegisterCommand("replayPlaneMission", Commands.ReplayPlaneMission, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("replayPlaneMissionSecondary", Commands.ReplayPlaneMissionSecondary, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("viewFaction", Commands.ViewFaction, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("viewPlayerVal", Commands.ViewPlayerVal, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("kaguyaTrialEffect", Commands.KaguyaTrialEffect, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("kaguyaTrialEffect2", Commands.KaguyaTrialEffect2, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("kaguyaTrialEffect3", Commands.KaguyaTrialEffect3, true); // Unknown
+                    INTERNALSETUP.RegisterCommand("summonDebugModDaemonComp", Commands.SummonDebugModDaemonComp, true); // Works
                 }
             }
             catch (Exception e)
