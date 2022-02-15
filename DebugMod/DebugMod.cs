@@ -23,6 +23,8 @@ namespace DebugMod
 
         internal static bool CheckVersions(string currentVer, string nextVer)
         {
+            return false;
+            /*
             var current = PraseVersion(currentVer);
             var next = PraseVersion(nextVer);
 
@@ -71,6 +73,7 @@ namespace DebugMod
             }
 
             return newVersion;
+            */
         }
 
         public static void DebugLog(string[] args, string join = " ", string type = "Message", ConsoleColor color = ConsoleColor.White)
@@ -150,7 +153,7 @@ namespace DebugMod
         public static int TotalCommands { get; internal set; } = 0;
 
         public static string version = "2.0-beta2.7";
-        public static string newVersion = GetVersion();
+        public static string newVersion = version;//GetVersion();
         public string GetIdentifier()
         {
             return "Debug Mod";
