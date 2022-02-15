@@ -1,81 +1,15 @@
 ﻿using System;
-using Command = Pathfinder.Command;
-using Hacknet;
+using System.Linq;
 using Pathfinder.Event;
-using System.Net;
+using Command = Pathfinder.Command;
 using BepInEx;
 using BepInEx.Hacknet;
-using System.Linq;
+using Hacknet;
 
 namespace DebugMod
 {
     internal class INTERNALSETUP
     {
-        private static string GetNumbers(string input)
-        {
-            return new string(input.Where(c => char.IsDigit(c)).ToArray());
-        }
-
-        public static string[] PraseVersion(string version)
-        {
-            return version.Split("."[1]); ;
-        }
-
-        internal static bool CheckVersions(string currentVer, string nextVer)
-        {
-            return false;
-            /*
-            var current = PraseVersion(currentVer);
-            var next = PraseVersion(nextVer);
-
-            bool newVersion = false;
-
-            bool currentReleaseUnknown = int.TryParse(current[1], out int _);
-            bool nextReleaseUnknown = int.TryParse(next[1], out int _);
-            
-            try
-            {
-                if (!nextReleaseUnknown && !currentReleaseUnknown)
-                {
-                    newVersion = (
-                        (int.Parse(current[0]) < int.Parse(next[0]))
-                        || (int.Parse(current[0]) < int.Parse(next[0]))
-                        || (int.Parse(current[0]) < int.Parse(next[0]))
-                    );
-                }
-                else
-                {
-                    var newNext = next;
-                    var newCurrent = current;
-
-                    if (currentReleaseUnknown)
-                    {
-                        newCurrent = PraseVersion(GetNumbers(currentVer));
-                    }
-
-                    if (nextReleaseUnknown)
-                    {
-                        newNext = PraseVersion(GetNumbers(nextVer));
-                    }
-                    // Fun part!
-                    // Since im currently lazy to you know parse if it is or is not alpha or beta etc
-                    newVersion = (
-                        (int.Parse(current[0]) < int.Parse(next[0]))
-                        || (int.Parse(current[0]) < int.Parse(next[0]))
-                        || (int.Parse(current[0]) < int.Parse(next[0]))
-                    );
-                }
-            }
-            catch (Exception e)
-            {
-                DebugLog(new string[] { e.Message, e.StackTrace }, "\n", "Error", ConsoleColor.Red);
-                return false;
-            }
-
-            return newVersion;
-            */
-        }
-
         public static void DebugLog(string[] args, string join = " ", string type = "Message", ConsoleColor color = ConsoleColor.White)
         {
             if (args.Length == 0)
@@ -125,7 +59,7 @@ namespace DebugMod
                     }
                     else if (e.Message == test1.Message && retry)
                     {
-                        DebugMod.CommandsLoaded += 1;
+                        DebugMod.CommandsLoaded += 1; // Make sure we count commands that loaded but just errored the first time
                         return;
                     }
                     else
@@ -144,35 +78,17 @@ namespace DebugMod
         public const string ModName = "DebugMod";
         public const string ModVer = "1.0.0"; // Might not touch this since custom versions are being used
 
-        private static bool AutoupdateEnabled = false;
-        private static bool IncludeBetaVersions = false;
         private bool alreadyLoaded = false;
         private bool shouldLoad = true;
         
         public static int CommandsLoaded { get; internal set; } = 0;
         public static int TotalCommands { get; internal set; } = 0;
 
-        public static string version = "2.0-beta2.7";
-        public static string newVersion = version;//GetVersion();
+        public static string version = "2.0-beta2.4c";
+        public static string newVersion = Updater.GetVersion();
         public string GetIdentifier()
         {
             return "Debug Mod";
-        }
-
-        private static string GetVersion()
-        {
-            WebClient client = new WebClient();
-
-            if (IncludeBetaVersions)
-            {
-                //Normal Release + dev build
-                return client.DownloadString("https://raw.githubusercontent.com/haawwkeye/DebugMod/master/VersionFileBeta.txt");
-            }
-            else
-            {
-                //Normal Release
-                return client.DownloadString("https://raw.githubusercontent.com/haawwkeye/DebugMod/master/VersionFile.txt");
-            }
         }
 
         public string Identifier
@@ -192,16 +108,14 @@ namespace DebugMod
 
             alreadyLoaded = true;
 
-            if (INTERNALSETUP.CheckVersions(version, newVersion))
+            if (Updater.CheckVersions(version, newVersion))
             {
-                INTERNALSETUP.DebugLog(new string[] { $"Debug mod is out of date\nCurrent Version: {version}\n New Version: {newVersion}\nAttempting autoupdate" }, "", "Info", ConsoleColor.Cyan);
-                if (AutoupdateEnabled)
+                if (Updater.AutoupdateEnabled)
                 {
-                    //return false;
+                    return false; // This is to stop the mod from loading since we have to update the mod
+                    // if the mod fails to download we will go ahead and open it up in the browser
                 }
             }
-
-            Console.WriteLine("Loading Debug Mod");
 
             // Load all content
             LoadContent();
@@ -219,7 +133,6 @@ namespace DebugMod
             try
             {
                 bool DebugEnabled = true;
-                //TODO: Rewrite DebugDaemon
                 Pathfinder.Daemon.DaemonManager.RegisterDaemon<DebugDaemon>();
                 INTERNALSETUP.RegisterCommand("loadDebugMenu", Commands.LoadDebugMenu, false); // Works
                 INTERNALSETUP.RegisterCommand("openAllPorts", Commands.OpenAllPorts, true); // Works
@@ -360,10 +273,12 @@ namespace DebugMod
         }
         */
 
+        /*
         public override bool Unload()
         {
             Console.WriteLine("Unloading Debug Mod");
             return true;
         }
+        */
     }
 }
