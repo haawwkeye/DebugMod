@@ -23,9 +23,7 @@ Look at the source if you need the new commands list (oh, you'll also find a sec
 
 # Empty exception and event listener call failed:
 
-~~There isn't much I can do about it, it's a pathfinder bug not calling the command method.~~
-
-I don't know what's the issue but I'm not going to fix it as the mod is discontinued
+This might be fixed in pathfinder now?
 
 # Warning:
 
