@@ -112,7 +112,7 @@ namespace DebugMod
             {
                 if (Updater.AutoupdateEnabled)
                 {
-                    return false; // This is to stop the mod from loading since we have to update the mod
+                    return true; // This is to stop the mod from loading since we have to update the mod
                     // if the mod fails to download we will go ahead and open it up in the browser
                 }
             }
@@ -214,7 +214,7 @@ namespace DebugMod
                     INTERNALSETUP.RegisterCommand("addRicerConnectDaemon", Commands.AddRicerConnectDaemon, true); // Works
                     INTERNALSETUP.RegisterCommand("addDLCCreditsDaemon", Commands.AddDLCCreditsDaemon, true); // Works
                     //
-                    INTERNALSETUP.RegisterCommand("addIRCDaemon", Commands.AddIRCDaemon,  true); // Unknown
+                    INTERNALSETUP.RegisterCommand("addIRCDaemon", Commands.AddIRCDaemon, true); // Unknown
                     //
                     INTERNALSETUP.RegisterCommand("addISPDaemon", Commands.AddISPDaemon, true); // Works
                     INTERNALSETUP.RegisterCommand("quit", Commands.Quit, true); // Works
@@ -226,7 +226,7 @@ namespace DebugMod
                     INTERNALSETUP.RegisterCommand("removeRicerConnectDaemon", Commands.RemoveRicerConnectDaemon, true); // Unknown
                     INTERNALSETUP.RegisterCommand("removeDLCCreditsDaemon", Commands.RemoveDLCCreditsDaemon, true); // Unknown
                     //
-                    INTERNALSETUP.RegisterCommand("removeIRCDaemon", Commands.RemoveIRCDaemon,  true); // Unknown
+                    INTERNALSETUP.RegisterCommand("removeIRCDaemon", Commands.RemoveIRCDaemon, true); // Unknown
                     //
                     INTERNALSETUP.RegisterCommand("removeISPDaemon", Commands.RemoveISPDaemon, true); // Unknown
                     INTERNALSETUP.RegisterCommand("forkbombVirus", Commands.ForkbombVirus, true); // Works
@@ -251,7 +251,9 @@ namespace DebugMod
             catch (Exception e)
             {
                 if (shouldLoad)
+                {
                     shouldLoad = false;
+                }
 
                 INTERNALSETUP.DebugLog(new string[] { "Failed to load Debug Mod", e.Message, e.StackTrace }, "\n", "Error", ConsoleColor.Red);
             }
